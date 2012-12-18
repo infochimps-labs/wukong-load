@@ -56,9 +56,7 @@ module Wukong
 
       # Run this loader.
       def run
-        EM.run do
-          StupidServer.new(processor_name, settings).run!
-        end
+        StupidServer.new(processor_name, settings).run!
       end
       
     end
