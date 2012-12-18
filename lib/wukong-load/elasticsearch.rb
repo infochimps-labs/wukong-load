@@ -21,7 +21,7 @@ module Wukong
 
       def setup
         h = host.gsub(%r{^http://},'')
-        # log.debug("Connecting to Elasticsearch cluster at #{h}:#{port}...")
+        log.debug("Connecting to Elasticsearch cluster at #{h}:#{port}...")
         begin
           self.connection = Net::HTTP.new(h, port)
           self.connection.use_ssl = true if host =~ /^https/
