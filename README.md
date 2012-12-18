@@ -64,7 +64,7 @@ newlines) record like
 {
   "_index":      "publications"
   "_type":       "book",
-  "ISBN":        "0553573403,
+  "ISBN":        "0553573403",
   "title":       "A Game of Thrones",
   "author":      "George R. R. Martin",
   "description": "The first of half a hundred novels to come out since...",
