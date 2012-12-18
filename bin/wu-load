@@ -11,10 +11,10 @@ supports multiple, pluggable data stores, including:
 
 Supported data stores:
 
-   elasticsearch                      Document store & search engine
-   hbase (planned)                    Highly scalable key-value store
-   mongob (planned)                   Real-time analytics engine & document store
-   mysql (planned                     Traditional RDBMS
+   elasticsearch
+   hbase (planned)
+   mongob (planned)
+   mysql (planned)
 
 Get specific help for a data store with
 
