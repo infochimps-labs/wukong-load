@@ -27,4 +27,5 @@ EOF
   gem.require_paths = ['lib']
 
   gem.add_dependency('wukong',      '3.0.0.pre3')
+  gem.add_dependency('mongo')
 end
