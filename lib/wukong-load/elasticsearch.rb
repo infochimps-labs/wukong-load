@@ -34,7 +34,7 @@ module Wukong
       #
       # If the record has an ID, we'll issue an update, otherwise a create
       #
-      # @param [record] Hash
+      # @param [Hash] record
       def load record
         id_for(record) ? request(Net::HTTP::Put, update_path(record), record) : request(Net::HTTP::Post, create_path(record), record)
       end

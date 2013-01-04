@@ -46,7 +46,9 @@ module Wukong
       EOF
       
       include Logging
-      
+
+      # Ensure that we were passed a data store name that we know
+      # about.
       def validate
         case
         when data_store_name.nil?
