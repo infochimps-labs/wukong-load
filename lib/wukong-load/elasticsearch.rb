@@ -99,7 +99,7 @@ module Wukong
       end
 
       # :nodoc:      
-      def handle_elasticsearch_error response
+      def handle_elasticsearch_error status, response
         begin
           error = MultiJson.load(response.body)
           log.error("#{response.code}: #{error['error']}")
