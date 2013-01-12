@@ -1,7 +1,7 @@
 # Wukong-Load
 
 This Wukong plugin makes it easy to load data from the command-line
-into various.
+into various data stores.
 
 It is assumed that you will independently deploy and configure each
 data store yourself (but see
@@ -19,7 +19,7 @@ useful when developing flows in concert with wu-local.
 Wukong-Load can be installed as a RubyGem:
 
 ```
-$ sudo gem install wukong-hadoop
+$ sudo gem install wukong-load
 ```
 
 ## Usage
@@ -39,7 +39,14 @@ $ wu-load store_name --help
 
 Further details will depend on the data store you're writing to.
 
-### Elasticsearch Usage
+### Expected Input
+
+All input to `wu-load` should be newline-separated, JSON-formatted,
+hash-like records.  For some data stores, keys in the record may be
+interpreted as metadata about the record or about how to route the
+record within the data store.
+
+## Elasticsearch Usage
 
 Lets you load JSON-formatted records into an
 [Elasticsearch](http://www.elasticsearch.org) database.  See full
@@ -49,36 +56,10 @@ options with
 $ wu-load elasticsearch --help
 ```
 
-#### Expected Input
+### Connecting
 
-All input to `wu-load` should be newline-separated, JSON-formatted,
-hash-like record.  Some keys in the record will be interpreted as
-metadata about the record or about how to route the record within the
-database but the entire record will be written to the database
-unmodified.
-
-A (pretty-printed for clarity -- the real record shouldn't contain
-newlines) record like
-
-```json
-{
-  "_index":      "publications"
-  "_type":       "book",
-  "ISBN":        "0553573403",
-  "title":       "A Game of Thrones",
-  "author":      "George R. R. Martin",
-  "description": "The first of half a hundred novels to come out since...",
-  ...
-}
-```
-
-might use the `_index` and `_type` fields as metadata but the
-**whole** record will be written.
-
-#### Connecting
-
-`wu-load` has a default host (localhost) and port (9200) it tries to
-connect to but you can change these:
+`wu-load` tries to connect to an Elasticsearch server at a default
+host (localhost) and port (9200).  You can change these:
 
 ```
 $ cat data.json | wu-load elasticsearch --host=10.122.123.124 --port=80
@@ -86,7 +67,7 @@ $ cat data.json | wu-load elasticsearch --host=10.122.123.124 --port=80
 
 All queries will be sent to this address.
 
-#### Routing
+### Routing
 
 Elasticsearch stores data in several *indices* which each contain
 *documents* of various *types*.
@@ -98,7 +79,10 @@ Elasticsearch stores data in several *indices* which each contain
 $ cat data.json | wu-load elasticsearch --host=10.123.123.123 --index=publication --es_type=book
 ```
 
-##### Creates vs. Updates
+A record with an `_index` or `_es_type` field will override these
+default settings.  You can change the names of the fields used.
+
+### Creates vs. Updates
 
 If an input document contains a value for the field `_id` then that
 value will be as the ID of the record when written, possibly
@@ -109,3 +93,38 @@ You can change the field you use for the Elasticsearch ID property:
 ```
 $ cat data.json | wu-load elasticsearch --host=10.123.123.123 --index=media --es_type=books --id_field="ISBN"
 ```
+
+## Kafka Usage
+
+Lets you load JSON-formatted records into a
+[Kafka](http://kafka.apache.org/) queue.  See full options with
+
+```
+$ wu-load kafka --help
+```
+
+### Connecting
+
+`wu-load` tries to connect to a Kafka broker at a default host
+(localhost) and a port (9092).  You can change these:
+
+```
+$ cat data.json | wu-load kafka --host=10.122.123.124 --port=1234
+```
+
+All records will be sent to this address.
+
+### Routing
+
+Kafka stores data in several named *queues*.  Each queue can have
+several numbered *partitions*.
+
+`wu-load` loads each record into the default queue (`test`) and
+partition (0), but you can change these:
+
+```
+$ cat data.json | wu-load kafka --host=10.123.123.123 --topic=messages --partition=6
+```
+
+A record with a `_topic` or `_partition` field will override these
+default settings.  You can change the names of the fields used.

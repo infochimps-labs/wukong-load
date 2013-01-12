@@ -13,42 +13,23 @@ module Wukong
         Supported data stores:
 
            elasticsearch
+           kafka
            hbase (planned)
-           mongob (planned)
+           mongodb (planned)
            mysql (planned)
 
         Get specific help for a data store with
 
           $ wu-load store_name --help
-
-        Elasticsearch Usage:
-
-        Pass newline-separated, JSON-formatted records over STDIN:
-
-        $ cat data.json | wu-load elasticsearch
-
-        By default, wu-load attempts to write each input record to a local
-        Elasticsearch database.  Records will be routed to a default
-        Elasticsearch index and type.  Records with an '_id' field will be
-        considered updates.  The rest will be creates.  You can override these
-        options:
-
-        $ cat data.json | wu-load elasticsearch --host=10.123.123.123 --index=my_app --es_type=my_obj --id_field="doc_id"
-
-        Params:
-           --host=String            Elasticsearch host, without HTTP prefix [Default: localhost]
-           --port=Integer           Port on Elasticsearch host [Default: 9200]
-           --index=String           Default Elasticsearch index for records [Default: wukong]
-           --es_type=String         Default Elasticsearch type  for records [Default: streaming_record]
-           --index_field=String     Field in each record naming desired Elasticsearch index
-           --es_type_field=String   Field in each record naming desired Elasticsearch type
-           --id_field=String        Field in each record naming providing ID of existing Elasticsearch record to update
       EOF
       
       include Logging
 
       # Ensure that we were passed a data store name that we know
       # about.
+      #
+      # @raise [Wukong::Error] if the data store is missing or unknown
+      # @return [true]
       def validate
         case
         when data_store_name.nil?
@@ -72,6 +53,7 @@ module Wukong
       def processor
         case data_store_name
         when 'elasticsearch' then :elasticsearch_loader
+        when 'kafka'         then :kafka_loader
         end
       end
 

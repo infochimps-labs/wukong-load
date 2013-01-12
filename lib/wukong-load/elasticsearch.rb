@@ -3,16 +3,49 @@ require_relative('loader')
 module Wukong
   module Load
 
-    # Loads data into Elasticsearch
+    # Loads data into Elasticsearch.
+    #
+    # Uses Elasticsearch's HTTP API to communicate.
+    #
+    # Allows loading records into a given index and type.  Records can
+    # have fields `_index` and `_es_type` which override the given
+    # index and type on a per-record basis.
+    #
+    # Records can have an `_id` field which indicates an update, not a
+    # create.
+    #
+    # The names of these fields within each record (`_index`,
+    # `_es_type`, and `_id`) can be customized.
     class ElasticsearchLoader < Loader
 
-      field :host,          String, :default => 'localhost'
-      field :port,          Integer,:default => 9200
-      field :index,         String, :default => 'wukong'
-      field :es_type,       String, :default => 'streaming_record'
-      field :index_field,   String, :default => '_index'
-      field :es_type_field, String, :default => '_es_type'
-      field :id_field,      String, :default => '_id'
+      field :host,          String, :default => 'localhost', :doc => "Elasticsearch host"
+      field :port,          Integer,:default => 9200, :doc => "Port on Elasticsearch host"
+      field :index,         String, :default => 'wukong', :doc => "Default Elasticsearch index for records"
+      field :es_type,       String, :default => 'streaming_record', :doc => "Default Elasticsearch type for records"
+      field :index_field,   String, :default => '_index', :doc => "Name of field in each record overriding default Elasticsearch index"
+      field :es_type_field, String, :default => '_es_type', :doc => "Name of field in each record overriding default Elasticsearch type"
+      field :id_field,      String, :default => '_id', :doc => "Name of field in each record providing ID of existing Elasticsearch record to update"
+
+      description <<-EOF.gsub(/^ {8}/,'')
+        Loads newline-separated, JSON-formatted records over STDIN
+        into Elasticsearch using its HTTP API.
+
+          $ cat data.json | wu-load elasticsearch
+
+        By default, wu-load attempts to write each input record to a
+        local Elasticsearch database.
+
+        Input records will be written to a default Elasticsearch index
+        and type.  Each record can have _index and _es_type fields to
+        override this on a per-record basis.
+
+        Records with an _id field will be trigger updates, the rest
+        creates.
+
+        The fields used (_index, _es_type, and _id) can be changed:
+
+          $ cat data.json | wu-load elasticsearch --host=10.123.123.123 --index=web_events --es_type=impressions --id_field="impression_id"
+      EOF
 
       # The Net::HTTP connection we'll use for talking to
       # Elasticsearch.

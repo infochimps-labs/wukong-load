@@ -10,10 +10,10 @@ module Wukong
     # Will ensure that `wu-load` has the same settings as `wu-local`.
     #
     # @param [Configliere::Param] settings the settings to configure
-    # @param [String] program the currentlyl executing program name
+    # @param [String] program the currently executing program name
     def self.configure settings, program
       return unless program == 'wu-load'
-      Wukong::Local.configure(settings, 'wu-local')
+      settings.define :tcp_port, description: "Consume TCP requests on the given port instead of lines over STDIN", type: Integer, flag: 't'
     end
 
     # Boot Wukong-Load from the resolved `settings` in the given
@@ -22,11 +22,10 @@ module Wukong
     # @param [Configliere::Param] settings the resolved settings
     # @param [String] dir the directory to boot in
     def self.boot settings, dir
-      Wukong::Local.boot(settings, dir)
     end
     
   end
 end
-require_relative 'wukong-load/version'
 require_relative 'wukong-load/runner'
 require_relative 'wukong-load/elasticsearch'
+require_relative 'wukong-load/kafka'
