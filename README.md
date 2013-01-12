@@ -128,3 +128,50 @@ $ cat data.json | wu-load kafka --host=10.123.123.123 --topic=messages --partiti
 
 A record with a `_topic` or `_partition` field will override these
 default settings.  You can change the names of the fields used.
+
+## MongoDB Usage
+
+Lets you load JSON-formatted records into an
+[MongoDB](http://www.mongodb.org) database.  See full options with
+
+```
+$ wu-load mongodb --help
+```
+
+### Connecting
+
+`wu-load` tries to connect to an MongoDB server at a default host
+(localhost) and port (27017).  You can change these:
+
+```
+$ cat data.json | wu-load mongodb --host=10.122.123.124 --port=1234
+```
+
+All queries will be sent to this address.
+
+### Routing
+
+MongoDB stores *documents* in several *databases* which each contain
+*collections*.
+
+`wu-load` loads each document into default database (`wukong`) and
+collection (`streaming_record`), but you can change these:
+
+```
+$ cat data.json | wu-load mongodb --host=10.123.123.123 --database=publication --collection=book
+```
+
+A record with a `_database` or `_collection` field will override these
+default settings.  You can change the names of the fields used.
+
+### Creates vs. Updates
+
+If an input document contains a value for the field `_id` then that
+value will be as the ID of the record when written, possibly
+overwriting a record that already exists -- an update.
+
+You can change the field you use for the MongoDB ID property:
+
+```
+$ cat data.json | wu-load mongodb --host=10.123.123.123 --database=media --collection=books --id_field="ISBN"
+```

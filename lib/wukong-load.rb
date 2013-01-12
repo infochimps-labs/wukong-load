@@ -29,3 +29,4 @@ end
 require_relative 'wukong-load/runner'
 require_relative 'wukong-load/elasticsearch'
 require_relative 'wukong-load/kafka'
+require_relative 'wukong-load/mongodb'

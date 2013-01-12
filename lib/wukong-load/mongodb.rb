@@ -3,16 +3,29 @@ require_relative('loader')
 module Wukong
   module Load
 
-    # Loads data into MongoDB
+    # Loads data into MongoDB.
+    #
+    # Uses the 'mongo' gem to connect and write data.
+    #
+    # Allows loading records into a given database and collection.
+    # Records can have fields `_database` and `_collection` which
+    # override the given database and collection on a per-record
+    # basis.
+    #
+    # Records can have an `_id` field which indicates an update, not
+    # an insert.
+    #
+    # The names of these fields within each record (`_database`,
+    # `_collection`, and `_id`) can be customized.
     class MongoDBLoader < Loader
 
-      field :host,             String, :default => 'localhost'
-      field :port,             Integer,:default => 9200
-      field :database,         String, :default => 'wukong'
-      field :collection,       String, :default => 'streaming_record'
-      field :database_field,   String, :default => '_database'
-      field :collection_field, String, :default => '_collection'
-      field :id_field,         String, :default => '_id'
+      field :host,             String, :default => 'localhost', :doc => "MongoDB host"
+      field :port,             Integer,:default => 27017, :doc => "Port on MongoDB host"
+      field :database,         String, :default => 'wukong', :doc => "Default MongoDB database"
+      field :collection,       String, :default => 'streaming_record', :doc => "Default MongoDB collection"
+      field :database_field,   String, :default => '_database', :doc => "Name of field in each record overriding default MongoDB database"
+      field :collection_field, String, :default => '_collection', :doc => "Name of field in each record overriding default MongoDB collection"
+      field :id_field,         String, :default => '_id', :doc => "Name of field in each record providing ID of existing MongoDB record to update"
 
       # The Mongo::MongoClient we'll use for talking to MongoDB.
       attr_accessor :client
@@ -38,20 +51,26 @@ module Wukong
       def load record
         id = id_for(record)
         if id
-          collection_for(record).update({:id => id}, record, :upsert => true)
+          res = collection_for(record).update({:_id => id}, record, :upsert => true)
+          if res['updatedExisting']
+            log.info("Updated #{id}")
+          else
+            log.info("Inserted #{id}")
+          end
         else
-          collection_for(record).insert(record)
+          res = collection_for(record).insert(record)
+          log.info("Inserted #{res}")
         end
       end
 
       # :nodoc:
       def database_for record
-        client.database(database_name_for(record))
+        client[database_name_for(record)]
       end
 
       # :nodoc:
       def collection_for record
-        database_for(record).collection(collection_name_for(record))
+        database_for(record)[collection_name_for(record)]
       end
 
       # :nodoc:
@@ -74,6 +93,3 @@ module Wukong
     end
   end
 end
-
-    
-    

@@ -14,8 +14,8 @@ module Wukong
 
            elasticsearch
            kafka
+           mongodb
            hbase (planned)
-           mongodb (planned)
            mysql (planned)
 
         Get specific help for a data store with
@@ -52,8 +52,9 @@ module Wukong
       # @return [String]
       def processor
         case data_store_name
-        when 'elasticsearch' then :elasticsearch_loader
-        when 'kafka'         then :kafka_loader
+        when 'elasticsearch'   then :elasticsearch_loader
+        when 'kafka'           then :kafka_loader
+        when 'mongo','mongodb' then :mongodb_loader
         end
       end
 
