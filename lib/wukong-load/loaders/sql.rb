@@ -59,7 +59,7 @@ module Wukong
       # Creates the client connection.
       def setup
         require 'mysql2'
-        log.debug("Connecting to SQL server at #{host}:#{port}...")
+        log.debug("Connecting to SQL server at <#{host}:#{port}> as <#{username}>#{' using password' if password}...")
         begin
           self.client = Mysql2::Client.new(sql_params)
         rescue => e
