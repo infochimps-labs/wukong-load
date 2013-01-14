@@ -29,4 +29,5 @@ EOF
   gem.add_dependency('wukong',      '3.0.0.pre3')
   gem.add_dependency('mongo')
   gem.add_dependency('kafka-rb')
+  gem.add_dependency('mysql2')
 end
