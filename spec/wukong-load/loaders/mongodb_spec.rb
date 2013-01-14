@@ -5,7 +5,7 @@ describe Wukong::Load::MongoDBLoader do
 
   let(:loader)                   { Wukong::Load::MongoDBLoader.new                                }
   let(:loader_with_custom_database) { Wukong::Load::MongoDBLoader.new(:database    => 'custom_database')   }
-  let(:loader_with_custom_type)  { Wukong::Load::MongoDBLoader.new(:collection  => 'custom_collection') }
+  let(:loader_with_custom_collection)  { Wukong::Load::MongoDBLoader.new(:collection  => 'custom_collection') }
   let(:loader_with_custom_id)    { Wukong::Load::MongoDBLoader.new(:id_field => '_custom_id')     }
 
   let(:record)                     { {'text' => 'hi'                                        } }
@@ -44,11 +44,11 @@ describe Wukong::Load::MongoDBLoader do
         it "to a given database" do
           loader_with_custom_database.database_name_for(record).should == 'custom_database'
         end
-        it "to a default type" do
+        it "to a default collection" do
           loader.collection_name_for(record).should == loader.collection
         end
-        it "to a given type" do
-          loader_with_custom_type.collection_name_for(record).should == 'custom_collection'
+        it "to a given collection" do
+          loader_with_custom_collection.collection_name_for(record).should == 'custom_collection'
         end
       end
       
@@ -59,11 +59,11 @@ describe Wukong::Load::MongoDBLoader do
         it "given database field to the given database" do
           loader_with_custom_database.database_name_for(record_with_custom_database).should == 'custom_database'
         end
-        it "default type field to the given type" do
+        it "default collection field to the given collection" do
           loader.collection_name_for(record_with_collection).should == 'custom_collection'
         end
-        it "given type field to the given type" do
-          loader_with_custom_type.collection_name_for(record_with_custom_collection).should == 'custom_collection'
+        it "given collection field to the given collection" do
+          loader_with_custom_collection.collection_name_for(record_with_custom_collection).should == 'custom_collection'
         end
       end
     end

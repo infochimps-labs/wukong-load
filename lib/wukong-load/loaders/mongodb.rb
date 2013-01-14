@@ -27,6 +27,30 @@ module Wukong
       field :collection_field, String, :default => '_collection', :doc => "Name of field in each record overriding default MongoDB collection"
       field :id_field,         String, :default => '_id', :doc => "Name of field in each record providing ID of existing MongoDB record to update"
 
+      description <<-EOF.gsub(/^ {8}/,'')
+        Loads newline-separated, JSON-formatted records over STDIN
+        into MongoDB.
+
+          $ cat data.json | wu-load mongodb
+
+        By default, wu-load attempts to write each input record to a
+        local MongoDB server.
+
+        Input records will be written to a default database and
+        collection.  Each record can have _database and _collection
+        fields to override this on a per-record basis.
+
+        Records with an _id field will be trigger updates, the rest
+        inserts.
+
+        All other fields within a record are assumed to be the names
+        of actual columns in the table.
+
+        The fields used (_index, _collection, and _id) can be changed:
+
+          $ cat data.json | wu-load mongodb --host=10.123.123.123 --database=web_events --collection=impressions --id_field=impression_id
+      EOF
+      
       # The Mongo::MongoClient we'll use for talking to MongoDB.
       attr_accessor :client
 
