@@ -15,8 +15,8 @@ module Wukong
            elasticsearch
            kafka
            mongodb
+           mysql
            hbase (planned)
-           mysql (planned)
 
         Get specific help for a data store with
 
@@ -55,6 +55,7 @@ module Wukong
         when 'elasticsearch'   then :elasticsearch_loader
         when 'kafka'           then :kafka_loader
         when 'mongo','mongodb' then :mongodb_loader
+        when 'sql', 'mysql'    then :sql_loader
         end
       end
 
