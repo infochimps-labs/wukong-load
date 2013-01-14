@@ -5,11 +5,13 @@ module Wukong
     
     include Gorillib::Model
 
-    field :timestamp,  Integer
-    field :path,       String
-    field :params,     Hash, :default => {}
-    field :headers,    Hash, :default => {}
-    field :ip_address, String
+    field :timestamp,  Integer, :doc => "Timestamp at which the HTTP request was received"
+    field :verb,       String,  :doc => "HTTP verb of the request"
+    field :path,       String,  :doc => "Absolute path to the resource requested"
+    field :params,     Hash,    :doc => "Query parameters contained in the request", :default => {}
+    field :headers,    Hash,    :doc => "HTTP headers of the request", :default => {}
+    field :ip_address, String,  :doc => "IP address of the client"
+    field :body,       String,  :doc => "Body of the request"
 
     # Return the URL of this request.
     #
