@@ -16,7 +16,7 @@ module Wukong
       when 'wu-load'
         settings.define :tcp_port, description: "Consume TCP requests on the given port instead of lines over STDIN", type: Integer, flag: 't'
       when 'wu-source'
-        settings.define :per_sec, description: "Number of events produced per second", type: Integer, default: 1
+        settings.define :per_sec, description: "Number of events produced per second", type: Float, default: 1.0
       end
     end
 
