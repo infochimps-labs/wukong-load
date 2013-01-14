@@ -1,4 +1,4 @@
-require_relative('loader')
+require_relative('../loader')
 require 'kafka'
 
 module Wukong

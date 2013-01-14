@@ -27,6 +27,9 @@ module Wukong
   end
 end
 require_relative 'wukong-load/runner'
-require_relative 'wukong-load/elasticsearch'
-require_relative 'wukong-load/kafka'
-require_relative 'wukong-load/mongodb'
+
+require_relative 'wukong-load/models/http_request'
+
+require_relative 'wukong-load/loaders/elasticsearch'
+require_relative 'wukong-load/loaders/kafka'
+require_relative 'wukong-load/loaders/mongodb'
