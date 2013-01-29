@@ -13,7 +13,13 @@ module Wukong
       def self.start(label, settings={})
         driver = new(:foobar, label, settings)
         driver.post_init
-        period = (1.0 / (settings[:per_sec] || 1.0))
+
+        period = case
+        when settings[:period]  then settings[:period]
+        when settings[:per_sec] then (1.0 / settings[:per_sec]) rescue 1.0
+        else 1.0
+        end
+        driver.create_event
         EventMachine::PeriodicTimer.new(period) { driver.create_event }
       end
 
