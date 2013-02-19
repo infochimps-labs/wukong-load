@@ -3,11 +3,12 @@ module Wukong
     class SourceDriver < Wukong::Local::StdioDriver
       include Logging
 
-      attr_accessor :index
+      attr_accessor :index, :batch_size
 
       def post_init
         super()
         self.index = 1
+        self.batch_size = settings[:batch_size].to_i if settings[:batch_size] && settings[:batch_size].to_i > 0
       end
 
       def self.start(label, settings={})
@@ -26,6 +27,7 @@ module Wukong
       def create_event
         receive_line(index.to_s)
         self.index += 1
+        finalize_dataflow if self.batch_size && (self.index % self.batch_size) == 0
       end
 
       # :nodoc:
