@@ -1,5 +1,4 @@
 require_relative('../loader')
-require 'kafka'
 
 module Wukong
   module Load
@@ -47,6 +46,11 @@ module Wukong
 
       # Creates the producer.
       def setup
+        begin
+          require 'kafka'
+        rescue => e
+          raise Error.new("Please ensure that the 'kafka-rb' gem is installed and available (in your Gemfile)")
+        end
         log.debug("Connecting to Kafka broker at #{host}:#{port}...")
         begin
           self.producer = Kafka::MultiProducer.new(:host => host, :port => port)

@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'kafka'
 
 describe Wukong::Load::KafkaLoader do
 

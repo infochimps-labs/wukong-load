@@ -56,7 +56,11 @@ module Wukong
 
       # Creates the client connection.
       def setup
-        require 'mongo'
+        begin
+          require 'mongo'
+        rescue => e
+          raise Error.new("Please ensure that the 'mongo' gem is installed and available (in your Gemfile)")
+        end
         h = host.gsub(%r{^http://},'')
         log.debug("Connecting to MongoDB server at #{h}:#{port}...")
         begin

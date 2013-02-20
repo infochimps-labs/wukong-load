@@ -58,7 +58,11 @@ module Wukong
 
       # Creates the client connection.
       def setup
-        require 'mysql2'
+        begin
+          require 'mysql2'
+        rescue => e
+          raise Error.new("Please ensure that the 'mysql2' gem is installed and available (in your Gemfile)")
+        end
         log.debug("Connecting to SQL server at <#{host}:#{port}> as <#{username}>#{' using password' if password}...")
         begin
           self.client = Mysql2::Client.new(sql_params)

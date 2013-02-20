@@ -8,3 +8,17 @@ group :development do
   gem 'yard'
   gem 'redcarpet'
 end
+
+group :mongo do
+  gem 'mongo'
+  gem 'bson_ext'
+end
+
+group :sql do
+  gem 'mysql2'
+end
+
+group :kafka do
+  gem 'kafka-rb'
+end
+

@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
   * MongoDB
   * HBase
   * MySQL
+  * Kafka
 
 and others.
 EOF
@@ -26,8 +27,5 @@ EOF
   gem.test_files    = gem.files.grep(/^spec/)
   gem.require_paths = ['lib']
 
-  gem.add_dependency('wukong',      '3.0.0.pre3')
-  gem.add_dependency('mongo')
-  gem.add_dependency('kafka-rb')
-  gem.add_dependency('mysql2')
+  gem.add_dependency('wukong', '3.0.0')
 end
