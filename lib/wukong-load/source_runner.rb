@@ -8,7 +8,6 @@ module Wukong
       usage "PROCESSOR|DATAFLOW"
 
       description <<-EOF.gsub(/^ {8}/,'')
-
         wu-source is a tool for using Wukong processors as sources of
         data in streams.
 
