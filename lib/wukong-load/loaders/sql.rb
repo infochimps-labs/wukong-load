@@ -60,7 +60,7 @@ module Wukong
       def setup
         begin
           require 'mysql2'
-        rescue => e
+        rescue LoadError => e
           raise Error.new("Please ensure that the 'mysql2' gem is installed and available (in your Gemfile)")
         end
         log.debug("Connecting to SQL server at <#{host}:#{port}> as <#{username}>#{' using password' if password}...")

@@ -48,7 +48,7 @@ module Wukong
       def setup
         begin
           require 'kafka'
-        rescue => e
+        rescue LoadError => e
           raise Error.new("Please ensure that the 'kafka-rb' gem is installed and available (in your Gemfile)")
         end
         log.debug("Connecting to Kafka broker at #{host}:#{port}...")

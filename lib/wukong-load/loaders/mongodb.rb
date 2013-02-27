@@ -58,7 +58,7 @@ module Wukong
       def setup
         begin
           require 'mongo'
-        rescue => e
+        rescue LoadError => e
           raise Error.new("Please ensure that the 'mongo' gem is installed and available (in your Gemfile)")
         end
         h = host.gsub(%r{^http://},'')
