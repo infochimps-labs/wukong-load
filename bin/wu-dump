@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'wukong-load'
+require 'wukong-load/consume_runner'
+Wukong::Load::ConsumeRunner.run
