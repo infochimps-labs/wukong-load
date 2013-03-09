@@ -23,7 +23,7 @@ module Wukong
       field :index,         String, :default => 'wukong', :doc => "Default Elasticsearch index for records"
       field :es_type,       String, :default => 'streaming_record', :doc => "Default Elasticsearch type for records"
       field :index_field,   String, :default => '_index', :doc => "Name of field in each record overriding default Elasticsearch index"
-      field :es_type_field, String, :default => '_es_type', :doc => "Name of field in each record overriding default Elasticsearch type"
+      field :es_type_field, String, :default => '_type',  :doc => "Name of field in each record overriding default Elasticsearch type"
       field :id_field,      String, :default => '_id', :doc => "Name of field in each record providing ID of existing Elasticsearch record to update"
 
       description <<-EOF.gsub(/^ {8}/,'')
