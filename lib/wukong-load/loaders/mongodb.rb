@@ -24,7 +24,7 @@ module Wukong
       field :database,         String, :default => 'wukong', :doc => "Default MongoDB database"
       field :collection,       String, :default => 'streaming_record', :doc => "Default MongoDB collection"
       field :database_field,   String, :default => '_database', :doc => "Name of field in each record overriding default MongoDB database"
-      field :collection_field, String, :default => '_collection', :doc => "Name of field in each record overriding default MongoDB collection"
+      field :collection_field, String, :default => '_type', :doc => "Name of field in each record overriding default MongoDB collection"
       field :id_field,         String, :default => '_id', :doc => "Name of field in each record providing ID of existing MongoDB record to update"
 
       description <<-EOF.gsub(/^ {8}/,'')
@@ -79,14 +79,14 @@ module Wukong
       def load record
         id = id_for(record)
         if id
-          res = collection_for(record).update({:_id => id}, record, :upsert => true)
+          res = collection_for(record).update({:_id => id}, interpret(record), :upsert => true)
           if res['updatedExisting']
             log.info("Updated #{id}")
           else
             log.info("Inserted #{id}")
           end
         else
-          res = collection_for(record).insert(record)
+          res = collection_for(record).insert(interpret(record))
           log.info("Inserted #{res}")
         end
       end
@@ -108,12 +108,23 @@ module Wukong
 
       # :nodoc:
       def collection_name_for record
-        record[collection_field] || self.collection
+        record.delete(collection_field) || self.collection
       end
 
       # :nodoc:
       def id_for record
         record[id_field]
+      end
+
+      def interpret record
+        Hash[record.map do |key, value|
+          case
+          when value.is_a?(String) && value =~ /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2}$/
+            [key, Time.parse(value)] rescue [key, value]
+          else
+            [key, value]
+          end
+        end]
       end
       
       register :mongodb_loader
