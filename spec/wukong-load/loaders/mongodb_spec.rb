@@ -11,7 +11,7 @@ describe Wukong::Load::MongoDBLoader do
   let(:record)                     { {'text' => 'hi'                                        } }
   let(:record_with_database)          { {'text' => 'hi', '_database'          => 'custom_database'   } }
   let(:record_with_custom_database)   { {'text' => 'hi', '_custom_database'   => 'custom_database'   } }
-  let(:record_with_collection)        { {'text' => 'hi', '_collection'        => 'custom_collection' } }
+  let(:record_with_collection)        { {'text' => 'hi', '_type'        => 'custom_collection' } }
   let(:record_with_custom_collection) { {'text' => 'hi', '_custom_collection' => 'custom_collection' } }
   let(:record_with_id)             { {'text' => 'hi', '_id'             => 'the_id'         } }
   let(:record_with_custom_id)      { {'text' => 'hi', '_custom_id'      => 'the_id'         } }
@@ -87,12 +87,12 @@ describe Wukong::Load::MongoDBLoader do
       end
       it "insert requests on a record without an ID" do
         @collection.should_receive(:insert).with(kind_of(Hash))
-        loader.load({'_database' => 'foo', '_collection' => 'bar'})
+        loader.load({'_database' => 'foo', '_type' => 'bar'})
       end
       
       it "update requests on a record with an ID" do
         @collection.should_receive(:update).with({:_id => '1'}, kind_of(Hash), :upsert => true).and_return({})
-        loader.load({'_database' => 'foo', '_collection' => 'bar', '_id' => '1'})
+        loader.load({'_database' => 'foo', '_type' => 'bar', '_id' => '1'})
       end
     end
     
