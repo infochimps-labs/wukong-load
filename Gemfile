@@ -22,3 +22,6 @@ group :kafka do
   gem 'kafka-rb'
 end
 
+group :zabbix do
+  gem 'rubix', :path => '~/rubix'
+end

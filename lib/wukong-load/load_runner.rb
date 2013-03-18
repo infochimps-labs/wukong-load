@@ -16,6 +16,7 @@ module Wukong
            kafka
            mongodb
            mysql
+           zabbix
            hbase (planned)
 
         Get specific help for a data store with
@@ -56,6 +57,7 @@ module Wukong
         when 'kafka'           then :kafka_loader
         when 'mongo','mongodb' then :mongodb_loader
         when 'sql', 'mysql'    then :sql_loader
+        when 'zabbix'          then :zabbix_loader
         end
       end
 
