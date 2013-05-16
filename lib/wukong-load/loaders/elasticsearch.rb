@@ -53,6 +53,7 @@ module Wukong
 
       # Creates a connection
       def setup
+        require 'net/http'
         h = host.gsub(%r{^http://},'')
         log.debug("Connecting to Elasticsearch cluster at #{h}:#{port}...")
         begin
