@@ -128,6 +128,7 @@ module Wukong
           end
         rescue => e
           log.error("#{e.class} - #{e.message}")
+          e.backtrace.each { |line| log.debug(line) }
         end
       end
 

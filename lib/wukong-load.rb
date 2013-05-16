@@ -7,14 +7,10 @@ module Wukong
 
     # Configure `settings` for Wukong-Load.
     #
-    # Will ensure that `wu-load` has the same settings as `wu-local`.
-    #
     # @param [Configliere::Param] settings the settings to configure
     # @param [String] program the currently executing program name
     def self.configure settings, program
       case program
-      when 'wu-load'
-        settings.define :tcp_port, description: "Consume TCP requests on the given port instead of lines over STDIN", type: Integer, flag: 't'
       when 'wu-source'
         settings.define :per_sec,    description: "Number of events produced per second", type: Float
         settings.define :period,     description: "Number of seconds between events (overrides --per_sec)", type: Float

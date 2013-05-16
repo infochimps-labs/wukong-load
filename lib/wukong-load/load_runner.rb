@@ -47,10 +47,10 @@ module Wukong
         args.first
       end
 
-      # The name of the processor that should handle the data store
+      # The name of the dataflow that should handle the data store.
       #
       # @return [String]
-      def processor
+      def dataflow
         case data_store_name
         when 'elasticsearch'   then :elasticsearch_loader
         when 'kafka'           then :kafka_loader

@@ -66,8 +66,8 @@ module Wukong
         begin
           topic     = topic_for(record)
           partition = partition_for(record)
-          bytes     = producer.send(topic, messages_for(record), :partition => partition)
-          log.info("Wrote #{bytes} bytes to #{topic}/#{partition}")
+          bytes     = producer.push(topic, messages_for(record), :partition => partition)
+          log.debug("Wrote #{bytes} bytes to #{topic}/#{partition}")
         rescue => e
           handle_error(record, e)
         end

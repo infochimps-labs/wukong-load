@@ -9,7 +9,7 @@ module Wukong
       #
       # @param [String] line JSON to parse.
       def process line
-        super(line) { |record| load(record) }
+        super(line) { |record| self.load(record) }
       end
 
       # Override this method to load a record into the data store.
