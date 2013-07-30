@@ -3,7 +3,7 @@ require_relative("default_file_handler")
 module Wukong
   module Load
     module FTP
-      class FTPMirror
+      class FTPSource
 
         include Logging
 
@@ -34,7 +34,7 @@ module Wukong
           settings[:port] || PROTOCOLS[settings[:protocol]]
         end
 
-        def run
+        def mirror
           user_msg = settings[:username] ? "#{settings[:username]}@" : ''
           log.info("Mirroring #{settings[:protocol]} #{user_msg}#{settings[:host]}:#{port}#{settings[:path]}")
           command = send("#{settings[:protocol]}_command")

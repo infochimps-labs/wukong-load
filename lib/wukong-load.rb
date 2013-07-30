@@ -35,7 +35,7 @@ module Wukong
         settings.define :links,    description: "Local directory for lexicographically ordered links to data"
         settings.define :dry_run,  description: "Don't actually download anything from the server", type: :boolean, default: false
 
-        settings.define :ftp_mirrors, type: Hash, description: "Hash mapping names to settings for mirroring each server"
+        settings.define :ftp_sources, type: Hash, description: "Hash mapping names to settings for mirroring each source"
 
         settings.define :lftp_program,      description: "Path to the `lftp` executable", default: 'lftp'
         settings.define :ignore_unverified, description: "Ignore errors due to an unverifiable (self-signed) SSL certificate", type: :boolean, default: false

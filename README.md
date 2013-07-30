@@ -247,20 +247,20 @@ local output and links directories.
 
 ### Multiple FTP sources
 
-The `--ftp_mirrors` setting can be used to specify a collection of
+The `--ftp_sources` setting can be used to specify a collection of
 different FTP sources, all to be mirrored locally.
 
-If set, `--ftp_mirrors` should be a Hash mapping the *name of an FTP
+If set, `--ftp_sources` should be a Hash mapping the *name of an FTP
 source* to a Hash of the same properties used by `wu-ftp` to process a
 single FTP source (`host`, `username`, `protocol`, &c.).
 
-It's easiest to set the `--ftp_mirrors` flag from within a deploy pack
+It's easiest to set the `--ftp_sources` flag from within a deploy pack
 in a configuration file, as in this example:
 
 ```yaml
 # in config/settings.yml
 ---
-ftp_mirrors:
+ftp_sources:
   stock_prices:
     host:     ftp.finance-company.com
 	username: bob
@@ -274,8 +274,8 @@ ftp_mirrors:
 	ignore_unverified: true
 ```	
 
-If an `--ftp_mirrors` setting is present, you can invoke `wu-ftp` on
-one of the listed mirrors by name:
+If an `--ftp_sources` setting is present, you can invoke `wu-ftp` on
+one of the listed sources by name:
 
 ```
 $ wu-ftp --output=/tmp/raw --links=/tmp/clean stock_prices

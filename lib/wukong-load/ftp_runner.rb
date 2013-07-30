@@ -1,4 +1,4 @@
-require_relative("ftp_runner/ftp_mirror")
+require_relative("ftp_runner/ftp_source")
 
 module Wukong
   module Load
@@ -25,30 +25,30 @@ module Wukong
       include Logging
 
       def validate
-        mirrors.each_value(&:validate)
+        sources.each_value(&:validate)
         true
       end
 
-      def mirrors
+      def sources
         case
-        when settings[:ftp_mirrors].nil? && args.first
-          raise Error.new("Cannot specify an FTP source by name unless its listed in the `--ftp_mirrors` setting")
-        when settings[:ftp_mirrors].nil?
-          { settings[:name] => FTPMirror.new(settings) }
-        when settings[:ftp_mirrors].is_a?(Hash) && args.first
-          properties = (settings[:ftp_mirrors][args.first] || settings[:ftp_mirrors][args.first.to_sym])
+        when settings[:ftp_sources].nil? && args.first
+          raise Error.new("Cannot specify an FTP source by name unless its listed in the `--ftp_sources` setting")
+        when settings[:ftp_sources].nil?
+          { settings[:name] => FTPSource.new(settings) }
+        when settings[:ftp_sources].is_a?(Hash) && args.first
+          properties = (settings[:ftp_sources][args.first] || settings[:ftp_sources][args.first.to_sym])
           raise Error.new("Unknown FTP source: <#{args.first}>") unless properties
-          { args.first => FTPMirror.new(settings.dup.merge({name: args.first}).merge(properties)) }
-        when settings[:ftp_mirrors].is_a?(Hash)
-          Hash[settings[:ftp_mirrors].map { |(name, properties)| [name, FTPMirror.new(settings.dup.merge({name: name}).merge(properties))] }]
+          { args.first => FTPSource.new(settings.dup.merge({name: args.first}).merge(properties)) }
+        when settings[:ftp_sources].is_a?(Hash)
+          Hash[settings[:ftp_sources].map { |(name, properties)| [name, FTPSource.new(settings.dup.merge({name: name}).merge(properties))] }]
         else
-          raise Error.new("The --ftp_mirrors settings must be a Hash mapping mirror names to properties for each mirror.  Received: #{settings[:ftp_mirrors].inspect}")
+          raise Error.new("The --ftp_sources settings must be a Hash mapping source names to properties for each source.  Received: #{settings[:ftp_sources].inspect}")
         end
       end
 
       def run
-        mirrors.each_pair do |name, mirror|
-          paths_processed = mirror.run
+        sources.each_pair do |name, source|
+          paths_processed = source.mirror
           if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client) && !paths_processed.empty?
             Wukong::Deploy.vayacondios_client.announce("listeners.ftp_listener-#{name}", paths: paths_processed)
           end
