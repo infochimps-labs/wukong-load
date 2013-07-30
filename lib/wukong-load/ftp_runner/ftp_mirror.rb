@@ -34,12 +34,13 @@ module Wukong
           settings[:port] || PROTOCOLS[settings[:protocol]]
         end
 
-        def mirror
+        def run
           user_msg = settings[:username] ? "#{settings[:username]}@" : ''
           log.info("Mirroring #{settings[:protocol]} #{user_msg}#{settings[:host]}:#{port}#{settings[:path]}")
           command = send("#{settings[:protocol]}_command")
           if settings[:dry_run]
             log.info(command)
+            []
           else
             subprocess = IO.popen(command)
             handle_output(subprocess.readlines)
@@ -57,10 +58,13 @@ module Wukong
         end
         
         def handle_output output
+          paths_processed = []
           output.each { |line| log.debug(line.chomp) }
           newly_downloaded_paths(output).each_with_index do |path, index|
             file_handler.process(path, index)
+            paths_processed << path
           end
+          paths_processed
         end
 
         def file_handler

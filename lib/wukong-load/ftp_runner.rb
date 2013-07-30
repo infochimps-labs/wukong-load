@@ -25,25 +25,28 @@ module Wukong
       include Logging
 
       def validate
-        mirrors.each(&:validate)
+        mirrors.each_value(&:validate)
         true
       end
 
       def mirrors
         case
         when settings[:ftp_mirrors].nil?
-          [FTPMirror.new(settings)]
+          { settings[:name] => FTPMirror.new(settings) }
         when settings[:ftp_mirrors].is_a?(Hash)
-          settings[:ftp_mirrors].map do |(name, properties)|
-            FTPMirror.new(settings.dup.merge({name: name}).merge(properties))
-          end
+          Hash[settings[:ftp_mirrors].map { |(name, properties)| [name, FTPMirror.new(settings.dup.merge({name: name}).merge(properties))] }]
         else
           raise Error.new("The --ftp_mirrors settings must be a Hash mapping mirror names to properties for each mirror.  Received: #{settings[:ftp_mirrors].inspect}")
         end
       end
 
       def run
-        mirrors.each(&:mirror)
+        mirrors.each_pair do |name, mirror|
+          paths_processed = mirror.run
+          if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+            Wukong::Deploy.vayacondios_client.announce("listeners.ftp_listener-#{name}", paths: paths_processed)
+          end
+        end
       end
 
     end
