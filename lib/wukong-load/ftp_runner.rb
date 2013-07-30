@@ -31,8 +31,14 @@ module Wukong
 
       def mirrors
         case
+        when settings[:ftp_mirrors].nil? && args.first
+          raise Error.new("Cannot specify an FTP source by name unless its listed in the `--ftp_mirrors` setting")
         when settings[:ftp_mirrors].nil?
           { settings[:name] => FTPMirror.new(settings) }
+        when settings[:ftp_mirrors].is_a?(Hash) && args.first
+          properties = (settings[:ftp_mirrors][args.first] || settings[:ftp_mirrors][args.first.to_sym])
+          raise Error.new("Unknown FTP source: <#{args.first}>") unless properties
+          { args.first => FTPMirror.new(settings.dup.merge({name: args.first}).merge(properties)) }
         when settings[:ftp_mirrors].is_a?(Hash)
           Hash[settings[:ftp_mirrors].map { |(name, properties)| [name, FTPMirror.new(settings.dup.merge({name: name}).merge(properties))] }]
         else
@@ -43,7 +49,7 @@ module Wukong
       def run
         mirrors.each_pair do |name, mirror|
           paths_processed = mirror.run
-          if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+          if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client) && !paths_processed.empty?
             Wukong::Deploy.vayacondios_client.announce("listeners.ftp_listener-#{name}", paths: paths_processed)
           end
         end

@@ -255,4 +255,28 @@ source* to a Hash of the same properties used by `wu-ftp` to process a
 single FTP source (`host`, `username`, `protocol`, &c.).
 
 It's easiest to set the `--ftp_mirrors` flag from within a deploy pack
-in a configuration file.
+in a configuration file, as in this example:
+
+```yaml
+# in config/settings.yml
+---
+ftp_mirrors:
+  stock_prices:
+    host:     ftp.finance-company.com
+	username: bob
+	password: hello
+	protocol: sftp
+  supply_chain:
+    host:     ftp.supplies.example.com
+	username: mary
+	password: goodbye
+	protocol: ftp
+	ignore_unverified: true
+```	
+
+If an `--ftp_mirrors` setting is present, you can invoke `wu-ftp` on
+one of the listed mirrors by name:
+
+```
+$ wu-ftp --output=/tmp/raw --links=/tmp/clean stock_prices
+```
