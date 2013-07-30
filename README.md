@@ -42,12 +42,12 @@ record within the data store.
 
 Further details will depend on the data store you're writing to.
 
-**Note:** The `wu-laod` program is not designed to handle any
+**Note:** The `wu-load` program is not designed to handle any
   significant scale of data.  It is only intended as a convenience
   tool for modeling how Wukong dataflows (which **can** scale) will
   interact with data stores.
 
-<a name="wu-ftp>
+<a name="wu-ftp">
 ### wu-ftp
 
 Wukong-Load also provides a program `wu-ftp` which can be used to
@@ -63,7 +63,7 @@ responsible for some files on some FTP servers.
 See the <a href="#ftp-usage">FTP usage</a> section below for more
 details.
 
-<a name="wu-s3>
+<a name="wu-s3">
 ### wu-s3
 
 Wukong-Load also provides a program `wu-s3` which can be used to
