@@ -22,6 +22,23 @@ module Wukong
         settings.define :port,           description: "Port for Kafka server", default: 9092
         settings.define :period,         description: "Number of seconds between requests for data from Kafka", default: 10
         settings.define :offset,         description: "Specify the offset to start from, set 0 to read from beginning"
+      when 'wu-ftp'
+        settings.define :protocol, description: "Transfer protocol to use: one of ftp, ftps, sftp", default: "ftp"
+        settings.define :host,     description: "Host to login to", default: "localhost"
+        settings.define :port,     description: "Port to login to.  Default depends on the protocol", type: Integer
+        settings.define :username, description: "Username to login as"
+        settings.define :password, description: "Password to use when logging in", env_var: "FTP_PASSWORD"
+        settings.define :path,     description: "Path on server to download", default: "/"
+
+        settings.define :output,   description: "Local root directory for downloaded data"
+        settings.define :name,     description: "Name of download subdirectory for data"
+        settings.define :links,    description: "Local directory for lexicographically ordered links to data"
+        settings.define :dry_run,  description: "Don't actually download anything from the server", type: :boolean, default: false
+
+        settings.define :ftp_mirrors, type: Hash, description: "Hash mapping names to settings for mirroring each server"
+
+        settings.define :lftp_program,      description: "Path to the `lftp` executable", default: 'lftp'
+        settings.define :ignore_unverified, description: "Ignore errors due to an unverifiable (self-signed) SSL certificate", type: :boolean, default: false
       end
     end
 
