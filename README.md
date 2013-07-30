@@ -63,6 +63,22 @@ responsible for some files on some FTP servers.
 See the <a href="#ftp-usage">FTP usage</a> section below for more
 details.
 
+<a name="wu-s3>
+### wu-s3
+
+Wukong-Load also provides a program `wu-s3` which can be used to
+archive a local directory to S3.
+
+**Note:** S3, like FTP, is conceptually "single-threaded", and no
+throughput gains are achieved by having multiple processes try and
+read the same key from the same S3 bucket.  For this reason, `wu-s3`
+**can** be used in a production setting, acting as the fundamental
+building block of a more distributed system of which each `wu-s3`
+process is responsible for some keys on some S3 buckets.
+
+See the <a href="#s3-usage">S3 usage</a> section below for more
+details.
+
 <a name="elasticsearch-usage">
 ## Elasticsearch Usage
 
@@ -279,4 +295,63 @@ one of the listed sources by name:
 
 ```
 $ wu-ftp --output=/tmp/raw --links=/tmp/clean stock_prices
+```
+
+<a name=s3-usage">
+## S3 Usage
+
+The program `wu-s3` is used to archive data from a local directory to
+S3.
+
+The [`s3cmd`](http://s3tools.org/s3cmd) program is required for
+`wu-s3` to function.
+
+### Specifying bucket and credentials
+
+By default, `wu-ftp` will adopt whatever the the system credentials
+for `s3cmd` are:
+
+```
+$ wu-s3 --input=/local/dir --bucket=s3://bucket-name/path/within
+```
+
+You can pass the `--s3cmd_config` flag to pass the path to another
+s3cmd configuration file, perhaps with different keys than the default
+installed on the system.
+
+### Integration with FTP
+
+The `wu-ftp` program can be used to locally mirror the contents of an
+FTP server.  This works nicely in combination with `wu-s3` which can
+then archive the local contents to S3.  For this reason, `wu-s3` also
+reads the `--ftp_sources` setting, just as `wu-ftp` does.
+
+The configuration for `--ftp_sources` should be amended with the
+`bucket` setting naming the S3 bucket (and optional path) to archive
+data to:
+
+```yaml
+# in config/settings.yml
+---
+ftp_sources:
+  stock_prices:
+    host:     ftp.finance-company.com
+	username: bob
+	password: hello
+	protocol: sftp
+	bucket:   s3://archive.example.com
+  supply_chain:
+    host:     ftp.supplies.example.com
+	username: mary
+	password: goodbye
+	protocol: ftp
+	ignore_unverified: true
+	bucket:   s3://archive.example.com
+```
+
+If an `--ftp_sources` setting is present, you can invoke `wu-s3` on
+one of the listed sources by name:
+
+```
+$ wu-s3 --input=/tmp/clean stock_prices
 ```

@@ -39,6 +39,14 @@ module Wukong
 
         settings.define :lftp_program,      description: "Path to the `lftp` executable", default: 'lftp'
         settings.define :ignore_unverified, description: "Ignore errors due to an unverifiable (self-signed) SSL certificate", type: :boolean, default: false
+      when 'wu-s3'
+        settings.define :input,           description: "Local directory to archive to S3"
+        settings.define :name,            description: "The name of the subdirectory to archive"
+        settings.define :bucket,          description: "S3 bucket and path to archive local data to"
+        settings.define :dry_run,         description: "Don't actually upload anything to S3", type: :boolean, default: false
+        settings.define :s3cmd_program,   description: "Path to the `s3cmd` executable", default: 's3cmd'
+        settings.define :s3cmd_config,    description: "Path to the `s3cmd` config file"
+        settings.define :bucket_location, description: "Datacentre to create bucket in. US, EU, us-west-1, or ap-southeast-1", default: "US"
       end
     end
 

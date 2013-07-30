@@ -8,7 +8,7 @@ module Wukong
 
       include FTP
 
-      usage ""
+      usage "[SOURCE]"
 
       description <<-EOF.gsub(/^ {8}/,'')
         wu-ftp is a tool for transferring data from an FTP/FTPS/SFTP
@@ -16,10 +16,23 @@ module Wukong
         compatible for downstream consumption by tools like Storm.
 
         Here's an example of pulling down some Twitter data from an
-        FTP server to the local `data/ftp` directory, under the
-        sub-directory `tweets`.
+        FTP server to the local `/tmp/raw` directory, with
+        lexicographically ordered hardlinks in the local `/tmp/clean`
+        directory using the data type `tweets`:
 
-        $ wu-ftp --host=ftp.example.com --path=twitter_data --output=data/ftp --name=tweets
+          $ wu-ftp --host=ftp.example.com --output=/tmp/raw --name=tweets --links=/tmp/clean
+
+        The protocol, host, and credentials can all be changed with
+        flags.
+
+        If the `--ftp_sources` setting is given, all sources within
+        this Hash will be downloaded when `wu-ftp` is invoked.
+        Alternatively, when `--ftp_sources` is present, a single
+        source can be invoked by name:
+
+          $ wu-ftp --output=/tmp/raw --links=/tmp/clean source_name
+
+        `wu-ftp` requires the `lftp` program in order to function.
       EOF
       
       include Logging
