@@ -57,9 +57,14 @@ module Wukong
 
       def run
         sources.each_pair do |name, source|
-          source.archive
-          if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-            Wukong::Deploy.vayacondios_client.announce("archivers.ftp_archiver-#{name}", success: true)
+          begin
+            source.archive
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+              Wukong::Deploy.vayacondios_client.announce("archivers.ftp_archiver-#{name}", success: true)
+            end
+          rescue Wukong::Error => e
+            log.error(e)
+            next
           end
         end
       end

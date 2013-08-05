@@ -61,9 +61,14 @@ module Wukong
 
       def run
         sources.each_pair do |name, source|
-          paths_processed = source.mirror
-          if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client) && !paths_processed.empty?
-            Wukong::Deploy.vayacondios_client.announce("listeners.ftp_listener-#{name}", paths: paths_processed)
+          begin
+            paths_processed = source.mirror
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client) && !paths_processed.empty?
+              Wukong::Deploy.vayacondios_client.announce("listeners.ftp_listener-#{name}", paths: paths_processed)
+            end
+          rescue Wukong::Error => e
+            log.error(e)
+            next
           end
         end
       end
