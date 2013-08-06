@@ -4,6 +4,10 @@ module Wukong
   module Load
 
     # Runs the wu-s3 command.
+    #
+    # Most of the complexity is contained in the construction of the
+    # #sources Hash.  The S3::LocalSource does most of the
+    # heavy-lifting.
     class S3Runner < Wukong::Runner
 
       include Wukong::Load::S3
@@ -33,11 +37,51 @@ module Wukong
       
       include Logging
 
+      # Delegates to each local source to validate itself.
+      #
+      # @see S3::LocalSource#validate
+      # @return [true]
+      # @raise [Wukong::Error] if validation fails
       def validate
         sources.each_value(&:validate)
         true
       end
 
+      # Iterates through and archives each FTp source, handling errors
+      # and Vayacondios notification.
+      def run
+        sources.each_pair do |name, source|
+          vayacondios_topic = "listeners.ftp_listener-#{name}"
+          begin
+            source.archive
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: true, )
+            end
+          rescue Wukong::Error => e
+            log.error(e)
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: false, error: e.class, message: e.message)
+            end
+            next
+          end
+        end
+      end
+
+      # Constructs a Hash of named FTP source credentials using one of three approaches:
+      #
+      #   1) if a a pre-defined Hash of several named credential sets
+      #   is defined (`ftp_sources`), then each of these sources will
+      #   be processed
+      #
+      #   2) if the first command-line argument names one of the
+      #   sources defiend in (1) then that source will be run alone
+      #
+      #   3) if no such sources are defined then rely on the
+      #   command-line arguments (`--host`, `--port`, &c.) to define a
+      #   source
+      #
+      # @return [Hash] FTP source names mapped to hashes with credentials for each source
+      # @raise [Wukong::Error] in edge cases, e.g. naming a source on the command-line without having defined any prior credentials
       def sources
         case
         when settings[:ftp_sources].nil? && args.first
@@ -54,21 +98,7 @@ module Wukong
           raise Error.new("The --ftp_sources settings must be a Hash mapping source names to properties for each source.  Received: #{settings[:ftp_sources].inspect}")
         end
       end
-
-      def run
-        sources.each_pair do |name, source|
-          begin
-            source.archive
-            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-              Wukong::Deploy.vayacondios_client.announce("archivers.ftp_archiver-#{name}", success: true)
-            end
-          rescue Wukong::Error => e
-            log.error(e)
-            next
-          end
-        end
-      end
-
+      
     end
   end
 end

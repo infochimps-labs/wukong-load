@@ -24,16 +24,19 @@ module Wukong
             []
           else
             subprocess = IO.popen(sync_command)
-            handle_output(subprocess.readlines)
+            subprocess.each do |line|
+              handle_output(line)
+            end
           end
         end
 
-        def handle_output output
-          output.each { |line| log.debug(line.chomp) }
+        def handle_output line
+          log.debug(line.chomp)
         end
         
         def sync_command
-          src  = File.join(settings[:input].to_s, settings[:name].to_s, "")  # always use a trailing '/' with s3cmd
+          src  = File.join(File.expand_path(settings[:input].to_s), settings[:name].to_s, "")  # always use a trailing '/' with s3cmd
+          raise Error.new("Input directory <#{src}> does not exist") unless File.exist?(src)
           raise Error.new("Input directory <#{src}> is not a directory") unless File.directory?(src)
           
           dest = File.join(settings[:bucket] =~ %r{^s3://} ? settings[:bucket].to_s : "s3://#{settings[:bucket]}", settings[:name].to_s + '/')

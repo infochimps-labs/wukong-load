@@ -1,6 +1,10 @@
 module Wukong
   module Load
     module FTP
+
+      # A handler which processes each newly downloaded file from an
+      # FTP server in order to create hardlinks within a separate,
+      # lexicographically ordered representation of the data.
       class FTPFileHandler
 
         attr_accessor :settings
@@ -9,12 +13,20 @@ module Wukong
 
         def initialize settings
           self.settings = settings
+          @threads      = []
         end
 
         def process path, counter
-          log.debug("Processing file #{counter}:\t#{path}")
-          link_metadata = _create_link(path, counter)
-          _create_metadata_json_file link_metadata
+          @threads << Thread.new do
+            sleep 1.0
+            log.debug("Processing file #{counter}:\t#{path}")
+            link_metadata = _create_link(path, counter)
+            _create_metadata_json_file link_metadata
+          end
+        end
+
+        def close
+          @threads.each(&:join)
         end
 
         # Determines the app-specific type_name for this file
@@ -114,8 +126,8 @@ module Wukong
         end
 
         def _construct_link_metadata(filename, counter)
-          link_dir = settings[:links]
-          dt = get_formatted_date_components
+          link_dir     = File.expand_path(settings[:links])
+          dt           = get_formatted_date_components
           app_name     = settings[:name].to_s
           type_name    = get_type_name(filename)
           slug         = get_slug(filename, counter)
@@ -123,12 +135,12 @@ module Wukong
 
           # file:
           #   bucket/app_name/type_name/yyyy/mm/dd/type_name-yyyymmdd-hhmmss-slug.ext
-          key_name = File.join(app_name, type_name, dt[:year], dt[:month], dt[:day], key_basename)
+          key_name  = File.join(app_name, type_name, dt[:year], dt[:month], dt[:day], key_basename)
           link_name = File.join(link_dir, key_name)
 
           #   metadata file:
           #     bucket/app_name/type_name_meta/yyyy/mm/dd/type_name-yyyymmdd-hhmmss-slug.ext.meta
-          meta_key_name = File.join(app_name, "#{type_name}_meta", dt[:year], dt[:month], dt[:day], "#{key_basename}.meta")
+          meta_key_name  = File.join(app_name, "#{type_name}_meta", dt[:year], dt[:month], dt[:day], "#{key_basename}.meta")
           meta_link_name = File.join(link_dir, meta_key_name)
 
           # prepare all intermediate directories
@@ -137,20 +149,20 @@ module Wukong
 
           file_abs_path = _file_abs_path(filename)
           settings.dup.merge({
-                               :app_name => app_name,
-                               :type_name => type_name,
-                               :slug => slug,
-                               :key_name => key_name,
-                               :link_name => link_name,
-                               :meta_key_name => meta_key_name,
+                               :app_name       => app_name,
+                               :type_name      => type_name,
+                               :slug           => slug,
+                               :key_name       => key_name,
+                               :link_name      => link_name,
+                               :meta_key_name  => meta_key_name,
                                :meta_link_name => meta_link_name,
-                               :md5 => Digest::MD5.file(file_abs_path).hexdigest,
-                               :filesize => File.stat(file_abs_path).size
+                               :md5            => Digest::MD5.file(file_abs_path).hexdigest,
+                               :filesize       => File.stat(file_abs_path).size
                              })
         end
 
         def _file_abs_path(filename)
-          file_abs_path = File.join(settings[:output].to_s, settings[:name].to_s, filename)
+          file_abs_path = File.join(File.expand_path(settings[:output].to_s), settings[:name].to_s, filename)
           file_abs_path
         end
 
