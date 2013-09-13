@@ -14,6 +14,9 @@ module Wukong
       include FTP
       include FTP::Hooks
 
+      FILESIZE_MAP_FILE = "./tmp/filesize_map.json"
+      LOCKFILE = "./ftp_runner.rb.pid"
+
       usage "[SOURCE]"
 
       description <<-EOF.gsub(/^ {8}/,'')
@@ -56,19 +59,70 @@ module Wukong
       # Iterates through and mirrors each FTP source, handling hooks
       # and errors.
       def run
-        sources.each_pair do |name, source|
-          begin
-            before_each(source)
-            paths_processed = source.mirror
-            after_each(source, paths_processed)
-          rescue Wukong::Error => e
-            log.error(e)
-            on_error(source, e)
-            next
+        abort("ERROR: lockfile exists") unless create_lockfile
+        begin
+          sources.each_pair do |name, source|
+            begin
+              before_each(source)
+              paths_processed = source.mirror
+              after_each(source, paths_processed)
+            rescue Wukong::Error => e
+              log.error(e)
+              on_error(source, e)
+              next
+            end
+          end
+        ensure
+          delete_lockfile
+        end
+      end
+
+      def create_lockfile
+        if File.exists?(LOCKFILE)
+          false
+        else
+          File.open(LOCKFILE, "w") do |f|
+            pid = Process.pid.to_s
+            log.debug "Writing pid #{pid} to lockfile"
+            f.write(pid)
           end
         end
       end
-      
+
+      def delete_lockfile
+        log.debug "Deleting lockfile"
+        File.delete(LOCKFILE)
+      end
+
+      def after_each source, paths_processed
+        filesize_map = {}
+        if File.exists?(FILESIZE_MAP_FILE)
+          File.open(FILESIZE_MAP_FILE, "r") do |f|
+            log.debug "reading from #{FILESIZE_MAP_FILE}"
+            filesize_map = MultiJson.load(f)
+          end
+        end
+
+        # process each finished file in the filesize_map
+        filesize_map.keys.each do |filename|
+          if (source.finished?(filename, paths_processed))
+            source.handle_finished_file filename
+            filesize_map.delete filename
+          end
+        end
+
+        paths_processed.each do |filename|
+          path = "#{settings[:output]}/#{settings[:name]}/#{filename}"
+          filesize_map[filename] = File.stat(path).size if File.exists?(path)
+        end
+
+        log.debug "filesize_map is #{filesize_map.inspect}"
+        File.open(FILESIZE_MAP_FILE, "w") do |f|
+          log.debug "writing to #{FILESIZE_MAP_FILE}"
+          f.write(MultiJson.dump(filesize_map))
+        end
+      end
+
       # Constructs a Hash of named FTP source credentials using one of three approaches:
       #
       #   1) if a a pre-defined Hash of several named credential sets
