@@ -1,4 +1,5 @@
 require_relative("s3_runner/local_source")
+require_relative("uses_lockfile")
 
 module Wukong
   module Load
@@ -11,8 +12,8 @@ module Wukong
     class S3Runner < Wukong::Runner
 
       include Wukong::Load::S3
-
-      LOCKFILE = "./ftp_runner.rb.pid"
+      include UsesLockfile
+      include Logging
 
       usage "[SOURCE]"
 
@@ -36,8 +37,6 @@ module Wukong
 
           $ wu-s3 --input=/data --bucket=s3://example.com/data --s3cmd_config=my_aws_account.s3cfg
       EOF
-      
-      include Logging
 
       # Delegates to each local source to validate itself.
       #
@@ -52,45 +51,26 @@ module Wukong
       # Iterates through and archives each FTp source, handling errors
       # and Vayacondios notification.
       def run
-        abort("ERROR: lockfile exists") unless create_lockfile
-        begin
-          sources.each_pair do |name, source|
-            vayacondios_topic = "listeners.ftp_listener-#{name}"
-            begin
-              source.archive
-              if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-                Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: true, )
-              end
-            rescue Wukong::Error => e
-              log.error(e)
-              if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-                Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: false, error: e.class, message: e.message)
-              end
-              next
+        create_lockfile!
+        sources.each_pair do |name, source|
+          vayacondios_topic = "listeners.ftp_listener-#{name}"
+          begin
+            source.archive
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: true, )
             end
-          end
-        ensure
-          delete_lockfile
-        end
-      end
-
-      def create_lockfile
-        if File.exists?(LOCKFILE)
-          false
-        else
-          File.open(LOCKFILE, "w") do |f|
-            pid = Process.pid.to_s
-            log.debug "Writing pid #{pid} to lockfile"
-            f.write(pid)
+          rescue Wukong::Error => e
+            log.error(e)
+            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: false, error: e.class, message: e.message)
+            end
+            next
           end
         end
+      ensure
+        delete_lockfile!
       end
-
-      def delete_lockfile
-        log.debug "Deleting lockfile"
-        File.delete(LOCKFILE)
-      end
-
+      
       # Constructs a Hash of named FTP source credentials using one of three approaches:
       #
       #   1) if a a pre-defined Hash of several named credential sets

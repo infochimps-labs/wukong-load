@@ -17,8 +17,8 @@ module Wukong
         # Run after each source is successfully mirrored.
         #
         # @param [Wukong::Load::FTP::FTPSource] source
-        # @param [Array<String>] newly_downloaded_paths the remote paths on the server that were newly downloaded
-        def after_each source, newly_downloaded_paths
+        def after_each source
+          source.handle_newly_mirrored_files
         end
 
         # Run upon an error during processing a source.
@@ -26,6 +26,8 @@ module Wukong
         # @param [Wukong::Load;:FTP::FTPSource] source
         # @param [Exception] error the error that occurred
         def on_error source, error
+          log.error("Could not process source <#{source.settings[:name]}>: #{e.class} -- #{e.message}")
+          error.backtrace.each { |line| log.debug(line) }
         end
         
       end

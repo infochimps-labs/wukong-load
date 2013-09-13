@@ -1,4 +1,5 @@
 require_relative("default_file_handler")
+require_relative("mirrored_files")
 
 module Wukong
   module Load
@@ -40,7 +41,7 @@ module Wukong
         # The verbosity level passed to the `lftp` program
         VERBOSITY = 3
 
-        attr_accessor :settings
+        attr_accessor :settings, :finished_files, :mirrored_files, :previously_mirrored_files
 
         # Create a new FTP source.
         #
@@ -54,6 +55,9 @@ module Wukong
         #
         def initialize settings
           self.settings = settings
+          self.finished_files            = MirroredFiles.new(settings[:name])
+          self.mirrored_files            = MirroredFiles.new(settings[:name])
+          self.previously_mirrored_files = MirroredFiles.new(settings[:name])
         end
 
         # Validates this FTP source.  Checks
@@ -92,68 +96,60 @@ module Wukong
         # representation of this data in the links directory.
         #
         # @see #file_handler for the class which constructs local hardlinks based on remote FTP paths
-        # @return [Array<String>] the newly mirrored remote FTP paths
         def mirror
           user_msg = settings[:username] ? "#{settings[:username]}@" : ''
           log.info("Mirroring #{settings[:protocol]} #{user_msg}#{settings[:host]}:#{port}#{settings[:path]}")
           command = send("#{settings[:protocol]}_command")
+          mirrored_files.clear
           if settings[:dry_run]
             log.info(command)
-            []
           else
-            subprocess      = IO.popen(command)
-            paths_processed = []
-            path_index      = 0
-            subprocess.each do |line|
-              handle_output(path_index, paths_processed, line)
-            end
+            IO.popen(command).each { |line| handle_output(line) }
           end
           file_handler.close
-          paths_processed
         end
 
-        # Handle a line of input given the context of the otuput.
+        # Handle a line of output from the `lftp` subprocess.
         #
-        # Will increment `path_index` and add to `paths_processed` if
-        # `line` indicates a new path was transferred.
+        # Will look for `Transferring file...` lines which indicate a
+        # new filename should be added to the list of
+        # `mirrored_paths`.
         #
-        # Will also log the line.
+        # Will also log the output `line` at the DEBUG level so the
+        # user can see what `lftp` is doing.
         #
-        # @param [Integer] path_index the current index of the last newly mirrored path
-        # @param [Array<String>] the paths which have already been mirrored
         # @param [String] a new line of output from `lftp`
-        def handle_output path_index, paths_processed, line
+        def handle_output line
           log.debug(line.chomp)
           if path = newly_downloaded_path?(line)
-            file_handler.process(path, path_index)
-            paths_processed << path
-            path_index      += 1
+            self.mirrored_files[path] = true
           end
         end
 
-
-        # Handle a file that has been deemed finished and ready for final processing
+        # Compares the `mirrored_files` to the
+        # `previously_mirrored_files` to determine which files are
+        # **complete**: they appeared in the former but **not** the
+        # latter.
         #
-        # Delegates to the `file_handler` for final processing
+        # For each of these completed files, has the `file_handler`
+        # process it.
         #
-        # @param [String] filename
-        def handle_finished_file filename
-          file_handler.process_finished filename
-        end
-
-        # Is the file corresponding to `filename` completely transferred to the
-        # remote FTP server, and do we believe that it is faithfully mirrored
-        # locally?
-        #
-        # Since we are using lftp mirror mode, the best we can do is check
-        # whether a file we have processed during the previous run has been
-        # processed again, and if so, do not consider it finished
-        #
-        # @param [String] filename
-        # @param [Array] paths_processed
-        # @return [Boolean]
-        def finished? filename, paths_processed
-          !paths_processed.index(filename)
+        # @see FTPFileHandler#process_finished
+        def handle_newly_mirrored_files
+          previously_mirrored_files.load
+          finished_files.clear
+          (previously_mirrored_files.keys - mirrored_files.keys).each do |filename|
+            begin
+              file_handler.process_finished(filename)
+              finished_files[filename] = true
+            rescue => e
+              log.error("Could not handle finished file <#{filename}>: #{e.class} -- #{e.message}")
+              e.backtrace.each { |line| log.debug(line) }
+              next
+            end
+          end
+          self.previously_mirrored_files = self.mirrored_files
+          self.previously_mirrored_files.save
         end
 
         # Does the `line` indicate a newly downloaded path from the
