@@ -131,6 +131,31 @@ module Wukong
           end
         end
 
+
+        # Handle a file that has been deemed finished and ready for final processing
+        #
+        # Delegates to the `file_handler` for final processing
+        #
+        # @param [String] filename
+        def handle_finished_file filename
+          file_handler.process_finished filename
+        end
+
+        # Is the file corresponding to `filename` completely transferred to the
+        # remote FTP server, and do we believe that it is faithfully mirrored
+        # locally?
+        #
+        # Since we are using lftp mirror mode, the best we can do is check
+        # whether a file we have processed during the previous run has been
+        # processed again, and if so, do not consider it finished
+        #
+        # @param [String] filename
+        # @param [Array] paths_processed
+        # @return [Boolean]
+        def finished? filename, paths_processed
+          !paths_processed.index(filename)
+        end
+
         # Does the `line` indicate a newly downloaded path from the
         # remote FTP server?
         #

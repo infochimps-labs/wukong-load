@@ -19,10 +19,17 @@ module Wukong
         def process path, counter
           @threads << Thread.new do
             sleep 1.0
-            log.debug("Processing file #{counter}:\t#{path}")
-            link_metadata = _create_link(path, counter)
-            _create_metadata_json_file link_metadata
+            log.debug("Processing file (noop) #{counter}:\t#{path}")
           end
+        end
+
+        def process_finished path
+          # @threads << Thread.new do
+          #   sleep 1.0
+            log.debug("Processing finished file #{path}")
+            link_metadata = _create_link(path, 0)
+            _create_metadata_json_file link_metadata
+          # end
         end
 
         def close
