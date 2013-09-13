@@ -12,6 +12,8 @@ module Wukong
 
       include Wukong::Load::S3
 
+      LOCKFILE = "./ftp_runner.rb.pid"
+
       usage "[SOURCE]"
 
       description <<-EOF.gsub(/^ {8}/,'')
@@ -50,21 +52,43 @@ module Wukong
       # Iterates through and archives each FTp source, handling errors
       # and Vayacondios notification.
       def run
-        sources.each_pair do |name, source|
-          vayacondios_topic = "listeners.ftp_listener-#{name}"
-          begin
-            source.archive
-            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: true, )
+        abort("ERROR: lockfile exists") unless create_lockfile
+        begin
+          sources.each_pair do |name, source|
+            vayacondios_topic = "listeners.ftp_listener-#{name}"
+            begin
+              source.archive
+              if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+                Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: true, )
+              end
+            rescue Wukong::Error => e
+              log.error(e)
+              if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
+                Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: false, error: e.class, message: e.message)
+              end
+              next
             end
-          rescue Wukong::Error => e
-            log.error(e)
-            if defined?(Wukong::Deploy) && Wukong::Deploy.respond_to?(:vayacondios_client)
-              Wukong::Deploy.vayacondios_client.announce(vayacondios_topic, archived: false, error: e.class, message: e.message)
-            end
-            next
+          end
+        ensure
+          delete_lockfile
+        end
+      end
+
+      def create_lockfile
+        if File.exists?(LOCKFILE)
+          false
+        else
+          File.open(LOCKFILE, "w") do |f|
+            pid = Process.pid.to_s
+            log.debug "Writing pid #{pid} to lockfile"
+            f.write(pid)
           end
         end
+      end
+
+      def delete_lockfile
+        log.debug "Deleting lockfile"
+        File.delete(LOCKFILE)
       end
 
       # Constructs a Hash of named FTP source credentials using one of three approaches:
