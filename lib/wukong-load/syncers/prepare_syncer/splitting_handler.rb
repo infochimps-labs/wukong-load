@@ -88,7 +88,7 @@ module Wukong
         # @return [String]
         def split_command original, copy
           condition = '--' + (split_by_bytes? ? 'bytes' : 'lines') + '=' + (split_by_bytes? ? settings[:bytes] : settings[:lines]).to_s
-          "#{file_dumper(original).dump_command} | #{split_program} #{condition} --numeric-suffixes --suffix-length=#{suffix_length} - #{suffix_stem_for(copy)} 2>&1"
+          "#{file_dumper(original).dump_command} | #{split_program} #{condition} --numeric-suffixes --suffix-length=#{suffix_length} - #{Shellwords.escape(suffix_stem_for(copy))} 2>&1"
         end
 
         # Return the stem of the suffix used for each produced output
