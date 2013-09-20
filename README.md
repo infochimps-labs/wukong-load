@@ -744,7 +744,7 @@ file:
 ```
 $ wu-sync s3 --input=/data/clean --bucket=s3://example.com/archive --s3cmd_config=config/s3cfg
 ```
-
+<a name="wu-sync-all">
 ### Working with multiple data sources
 
 **Note:** This functionality is designed to work in the context of a
