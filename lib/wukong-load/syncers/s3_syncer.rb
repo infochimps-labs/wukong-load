@@ -15,9 +15,6 @@ module Wukong
       # Number of bytes synced.
       attr_accessor :bytes
       
-      # Number of seconds taken to complete sync.
-      attr_accessor :duration
-
       # Construct a new S3Syncer from the given `settings` for the
       # given `source` with the given `name`.
       #

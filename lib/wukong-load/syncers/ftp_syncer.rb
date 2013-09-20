@@ -10,9 +10,6 @@ module Wukong
 
       include Logging
 
-      # Time taken to complete sync.
-      attr_accessor :duration
-
       # A mapping between protocal names and the standard ports
       # those services run on.
       PROTOCOLS = {

@@ -201,6 +201,7 @@ EOF
       # sizes in the `input` directory, but will log a message at the
       # `DEBUG` level for each file it would have processed.
       def sync
+        started_at = Time.now
         absolute_input_directory.find do |path|
           next if path.directory?
           self.files[:examined] += 1
@@ -210,6 +211,7 @@ EOF
           end
           same_size?(path) ? process!(path) : remember_size!(path)
         end
+        self.duration = (Time.now - started_at)
       ensure
         save_file_state!
       end

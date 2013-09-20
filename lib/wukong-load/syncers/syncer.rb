@@ -12,6 +12,9 @@ module Wukong
       # Name of this syncer.
       attr_accessor :name
 
+      # Time taken to complete sync.
+      attr_accessor :duration
+      
       # Construct a new Syncer from the given `settings` for the given
       # `source` with the given `name`.
       #
