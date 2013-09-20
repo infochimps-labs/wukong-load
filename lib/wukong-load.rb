@@ -17,10 +17,10 @@ module Wukong
       when 'wu-sync'
         settings.define :dry_run, description: "Don't actually do anything, just print what would happen", type: :boolean, default: false
       when 'wu-sync-all'
-        settings.define :sources, description: "Hash of source names to properties used for syncing", type: Hash, default: {}
-        settings.define :only,    description: "Comma-separated Array of particular named sources to sync", type: Array
-        settings.define :except,  description: "Comma-separated Array of particular named sources to not sync", type: Array
-        settings.define :dry_run, description: "Don't actually do anything, just print what would happen", type: :boolean, default: false
+        settings.define :listeners, description: "Hash of source names to properties used for syncing", type: Hash, default: {}
+        settings.define :only,      description: "Comma-separated Array of particular named listeners to sync", type: Array
+        settings.define :except,    description: "Comma-separated Array of particular named listeners to not sync", type: Array
+        settings.define :dry_run,   description: "Don't actually do anything, just print what would happen", type: :boolean, default: false
       end
     end
 

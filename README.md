@@ -758,12 +758,12 @@ sources (or just some of them).
 
 Within one of the configuration files in your deploy pack (either
 `config/settings.yml` or an environment-specific
-`config/environments/ENVIRONMENT.yml`) create a section for your
-sources as follows:
+`config/environments/ENVIRONMENT.yml`) create a listener for each of
+your souces as follows:
 
 ```
 ---
-sources:
+listeners:
   nasa:
     ftp:
       host:     ftp.nasa.gov
@@ -789,7 +789,7 @@ sources:
   ...
 ```
 
-The top-level keys in the `sources` Hash (`nasa`, `usaf`, &c.) are
+The top-level keys in the `listeners` Hash (`nasa`, `usaf`, &c.) are
 each the name of a data source.  The next-level keys (`ftp`,
 `archive`, `s3`) each name a sync type and give the options for that
 type.  These options are exactly the same as the usual options for
@@ -798,8 +798,8 @@ that sync-type.  Options not supplied via the configuration file
 directories) are expected to be supplied on the command-line at
 runtime.
 
-With a proper configuration with valid sources, the following commands
-will perform a sync from FTP to S3 of all data sources:
+With a proper configuration with valid listeners, the following
+commands will perform a sync from FTP to S3 of all data sources:
 
 ```
 $ wu-sync-all ftp --output=/data/incoming

@@ -18,12 +18,12 @@ simultaneously.  It works with the same data stores as wu-sync:
   s3
   archive
 
-It works using a --sources Hash.  Here's an example of what you might
-put in a configuration file:
+It works using a --listeners Hash.  Here's an example of what you
+might put in a configuration file:
 
   ---
   # in config/settings.yml
-  sources:
+  listeners:
     nasa:
       ftp:
         host:     ftp.nasa.gov
@@ -42,7 +42,7 @@ put in a configuration file:
         bucket: s3://archive.example.com/usaf
 
 This would let you run the following command to sync both `nasa` and
-`usaf` sources from FTP to local disk at the same time:
+`usaf` listeners from FTP to local disk at the same time:
 
   $ wu-sync-all ftp --output=/data/ftp
 
@@ -50,7 +50,7 @@ Followed by a command to sync this local disk to S3:
 
   $ wu-sync-all s3 --input=/data/ftp --bucket=s3://example.com/ftp
 
-For any type of sync, you can control which sources are synced using
+For any type of sync, you can control which listeners are synced using
 the --only and --except options:
 
   $ wu-sync-all ftp --output=/data/ftp --only=source_1,source_2
@@ -116,11 +116,11 @@ EOF
       # Returns an Array of each syncer used.
       #
       # Respects the `only` and `except`, allowing for more
-      # fine-grained control over which sources are synced.
+      # fine-grained control over which listeners are synced.
       #
       # @return [Array<Syncer>]
       def syncers
-        @syncers ||= (settings[:sources] || {}).map do |name, source|
+        @syncers ||= (settings[:listeners] || {}).map do |name, source|
           next if settings[:only]   && !settings[:only].include?(name.to_s)
           next if settings[:except] && settings[:except].include?(name.to_s)
           syncer_klass.from_source(settings, source, name)
