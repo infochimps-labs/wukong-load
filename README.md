@@ -761,7 +761,7 @@ Within one of the configuration files in your deploy pack (either
 `config/environments/ENVIRONMENT.yml`) create a listener for each of
 your souces as follows:
 
-```
+```yaml
 ---
 listeners:
   nasa:
