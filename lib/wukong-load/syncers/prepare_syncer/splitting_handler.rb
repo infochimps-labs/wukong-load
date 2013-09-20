@@ -1,7 +1,7 @@
 require 'wukong-load/dumpers/file_dumper'
 module Wukong
   module Load
-    class ArchiveSyncer
+    class PrepareSyncer
 
       # When syncing, splits each input file into several output files
       # based on size or number of lines.

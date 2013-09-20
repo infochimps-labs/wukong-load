@@ -1,6 +1,6 @@
 module Wukong
   module Load
-    class ArchiveSyncer
+    class PrepareSyncer
 
       # Can be included into another Handler class to make that
       # handler create a strict ordering for files in its output

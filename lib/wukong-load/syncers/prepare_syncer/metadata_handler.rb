@@ -1,7 +1,7 @@
 require 'digest/md5'
 module Wukong
   module Load
-    class ArchiveSyncer
+    class PrepareSyncer
 
       # Allows creating metadata files to accompany output files
       # produced by a handler.
