@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'wukong-load'
+require 'wukong-load/sync_runner'
+Wukong::Load::SyncRunner.run

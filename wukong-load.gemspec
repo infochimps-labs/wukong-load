@@ -23,7 +23,7 @@ and others.
 EOF
 
   gem.files         = `git ls-files`.split("\n")
-  gem.executables   = ['wu-load', 'wu-source', 'wu-ftp', 'wu-s3']
+  gem.executables   = ['wu-load', 'wu-dump', 'wu-sync', 'wu-sync-all']
   gem.test_files    = gem.files.grep(/^spec/)
   gem.require_paths = ['lib']
 

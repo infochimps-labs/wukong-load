@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
 
 require 'wukong-load'
+require 'wukong-load/load_runner'
 Wukong::Load::LoadRunner.run

@@ -1,5 +1,3 @@
-require_relative('../loader')
-
 module Wukong
   module Load
 

@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'wukong-load'
-require 'wukong-load/ftp_runner'
-Wukong::Load::FTPRunner.run

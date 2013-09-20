@@ -1,29 +1,35 @@
+# We have to require these, **not** autoload them because we need them
+# to register themselves so that Wukong can find them later when
+# asked.
+require_relative 'loaders/elasticsearch_loader'
+require_relative 'loaders/kafka_loader'
+require_relative 'loaders/mongodb_loader'
+require_relative 'loaders/sql_loader'
+
 module Wukong
   module Load
 
-    # Runs the wu-load command.
+    # Implements the wu-load command.
     class LoadRunner < Wukong::Local::LocalRunner
 
+      include Logging
+      
       usage "DATA_STORE"
 
       description <<-EOF.gsub(/^ {8}/,'')
-        wu-load is a tool for loading data from Wukong into data stores.  It
-        supports multiple, pluggable data stores, including:
+wu-load is a tool for loading data from Wukong into data stores.  It
+supports multiple, pluggable data stores, including:
 
-        Supported data stores:
+   elasticsearch
+   kafka
+   mongodb
+   sql
+   hbase (planned)
 
-           elasticsearch
-           kafka
-           mongodb
-           mysql
-           hbase (planned)
+For more help on a specific loader, run:
 
-        Get specific help for a data store with
-
-          $ wu-load store_name --help
-      EOF
-      
-      include Logging
+  $ wu-load STORE_TYPE --help
+EOF
 
       # Ensure that we were passed a data store name that we know
       # about.
@@ -40,14 +46,14 @@ module Wukong
         true
       end
       
-      # The name of the data store
+      # The name of the data store to load data to.
       #
       # @return [String]
       def data_store_name
         args.first
       end
 
-      # The name of the dataflow that should handle the data store.
+      # The name of the processor that should 
       #
       # @return [String]
       def dataflow

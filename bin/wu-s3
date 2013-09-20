@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'wukong-load'
-require 'wukong-load/s3_runner'
-Wukong::Load::S3Runner.run
