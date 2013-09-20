@@ -1,18 +1,18 @@
 require_relative('metadata_handler')
 module Wukong
   module Load
-    class ArchiveSyncer
+    class PrepareSyncer
 
-      autoload :OrderedHandler, 'wukong-load/syncers/archive_syncer/ordered_handler'
+      autoload :OrderedHandler, 'wukong-load/syncers/prepare_syncer/ordered_handler'
 
       # Base class for other handlers to subclass.
       class Handler
 
-        # The ArchiveSyncer this Handler is for.
+        # The PrepareSyncer this Handler is for.
         attr_accessor :syncer
 
         # Settings this handler was created with, probably inherited
-        # from the ArchiveSyncer that created it.
+        # from the PrepareSyncer that created it.
         attr_accessor :settings
 
         include Logging
@@ -20,7 +20,7 @@ module Wukong
 
         # Create a new Handler with the given `settings`.
         #
-        # @param [ArchiveSyncer] syncer the archive syncer this handler is for
+        # @param [PrepareSyncer] syncer the syncer this handler is for
         # @param [Configliere::Param] settings
         # @option settings [Pathname] :input the input directory
         # @option settings [Pathname] :output the output directory

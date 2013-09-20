@@ -37,7 +37,7 @@ module Wukong
       # @param [Configliere::Param] settings
       def self.configure settings
         settings.define :input,           description: "Local directory to archive to S3"
-        settings.define :bucket,          description: "S3 bucket and path to archive local data to"
+        settings.define :bucket,          description: "S3 bucket and path to in which to archive data"
         
         settings.define :s3cmd_program,   description: "Path to the `s3cmd` executable", default: 's3cmd'
         settings.define :s3cmd_config,    description: "Path to the `s3cmd` config file"

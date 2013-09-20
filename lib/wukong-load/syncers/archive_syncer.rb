@@ -44,18 +44,18 @@ module Wukong
     # a downstream consumer can use the presence or absence of a
     # metadata file as an indicator of whether the **actual** output
     # file (or splits) has finished arriving.
-    class ArchiveSyncer < Syncer
+    class PrepareSyncer < Syncer
       
       include Logging
       include UsesFileState
       
-      autoload :Handler,           'wukong-load/syncers/archive_syncer/handler'
-      autoload :SplittingHandler,  'wukong-load/syncers/archive_syncer/splitting_handler'
+      autoload :Handler,           'wukong-load/syncers/prepare_syncer/handler'
+      autoload :SplittingHandler,  'wukong-load/syncers/prepare_syncer/splitting_handler'
 
-      # Construct a new ArchiveSyncer from the given `settings` for
+      # Construct a new PrepareSyncer from the given `settings` for
       # the given `source` with the given `name`.
       #
-      # @return [ArchiveSyncer]
+      # @return [PrepareSyncer]
       def self.from_source settings, source, name
         raise Error.new("An --input directory is required") unless settings[:input]
         raise Error.new("An --output directory is required") unless settings[:output]
@@ -63,10 +63,10 @@ module Wukong
           name:   name.to_s,
           input:  File.join(settings[:input], name.to_s),
           output: File.join(settings[:output], name.to_s),
-        }).merge(source[:archive] || {}))
+        }).merge(source[:prepare] || {}))
       end
       
-      # Configure the `settings` for use with an ArchiveSyncer.
+      # Configure the `settings` for use with an PrepareSyncer.
       #
       # @param [Configliere::Param] settings
       def self.configure settings
@@ -92,8 +92,8 @@ files in the --output directory.  Files in the --input directory which
 don't change size between invocations are considered "complete" and
 will be created in the --output directory:
 
-  $ wu-sync archive --input=/var/ftp/data --output=/data/ftp/archive
-  $ wu-sync archive --input=/var/ftp/data --output=/data/ftp/archive
+  $ wu-sync prepare --input=/var/inbound --output=/data/outbound
+  $ wu-sync prepare --input=/var/inbound --output=/data/outbound
 
 The default behavior is to mirror exactly the structure of the --input
 directory in the --output directory.
@@ -105,8 +105,8 @@ consumers.  The default behavior is to split after every 10,000 lines
 but this can be changed with the --lines option or the --bytes option,
 which will split after a certain number of bytes instead of lines.
 
-  $ wu-sync archive --input=/var/ftp/data --output=/data/ftp/archive --split --lines=100_000
-  $ wu-sync archive --input=/var/ftp/data --output=/data/ftp/archive --split --bytes=1_048_576
+  $ wu-sync prepare --input=/var/ftp/inbound --output=/data/ftp/outbound --split --lines=100_000
+  $ wu-sync prepare --input=/var/ftp/inbound --output=/data/ftp/outbound --split --bytes=1_048_576
 
 The --ordered option can be used to create a complete ordering of
 files in the --output directory, useful for when downstream consumers
@@ -122,7 +122,7 @@ directory will be hardlinks pointing at their equivalent files in the
 EOF
       end
 
-      # Validate the `settings` for this archive syncer.
+      # Validate the `settings` for this prepare syncer.
       #
       # @raise [Wukong::Error] if the local `input` directory is missing or not a directory
       # @raise [Wukong::Error] if the local `output` directory eixsts but is not a directory
@@ -173,7 +173,7 @@ EOF
         Pathname.new(File.absolute_path(settings[:output]))
       end
 
-      # Setup this ArchiveSyncer by loading any file size state that's
+      # Setup this PrepareSyncer by loading any file size state that's
       # already present.
       def setup
         super()
@@ -269,12 +269,12 @@ EOF
 
       # The basename for the file used to store state between invocations.
       #
-      # Uses the #name of the archive syncer if present so that
+      # Uses the #name of the prepare syncer if present so that
       # multiple named syncers can operate in parallel.
       #
       # @return [String]
       def file_state_basename
-        "sync-archive#{'-' + name if name}.json"
+        "sync-prepare#{'-' + name if name}.json"
       end
       
     end

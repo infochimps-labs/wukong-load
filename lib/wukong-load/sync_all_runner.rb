@@ -16,7 +16,7 @@ simultaneously.  It works with the same data stores as wu-sync:
 
   ftp
   s3
-  archive
+  prepare
 
 It works using a --listeners Hash.  Here's an example of what you
 might put in a configuration file:
@@ -109,7 +109,7 @@ EOF
         case syncer_name.to_s.downcase
         when 's3'         then S3Syncer
         when 'ftp'        then FTPSyncer
-        when 'archive'    then ArchiveSyncer
+        when 'prepare'    then PrepareSyncer
         end
       end
 

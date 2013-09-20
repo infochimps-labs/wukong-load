@@ -146,8 +146,8 @@ a per-file transactional guarantee throughout:
 
 ```
 $ wu-sync ftp --host=ftp.example.com --path=/remote/data --output=/data/incoming
-$ wu-sync archive --input=/data/incoming --output=/data/received
-$ wu-sync archive --input=/data/incoming --output=/data/received
+$ wu-sync prepare --input=/data/incoming --output=/data/received
+$ wu-sync prepare --input=/data/incoming --output=/data/received
 $ wu-sync s3 --input=/data/received --bucket=s3://example.com/data
 ```
 
@@ -427,7 +427,7 @@ The port is determined automatically from the protocol (e.g. - 21 for
 `ftp`, 22 for `sftp`, 443 for `ftps`) but can be explicitly given with
 the `--port` flag.
 
-### Creating a Local Archive
+### Preparing Files for Downstream Consumption
 
 One of the immediate issues that arises when syncing files is that it
 may not be clear to a client when the file on the remote server the
@@ -465,18 +465,18 @@ Here's an example of the `--input` directory `/data/ftp`:
 └──   README
 ```
 
-After running `wu-sync archive` twice
+After running `wu-sync prepare` twice
 
 ```
-$ wu-sync archive --input=/data/ftp --output=/data/archive
-$ wu-sync archive --input=/data/ftp --output=/data/archive
+$ wu-sync prepare --input=/data/ftp --output=/data/clean
+$ wu-sync prepare --input=/data/ftp --output=/data/clean
 ```
 
-the `--output` directory `/data/archive` should look exactly the same
+the `--output` directory `/data/clean` should look exactly the same
 as the input directory:
 
 ```
-/data/archive
+/data/clean
 ├──   alice
 │   └──   project_1
 │       └──   file_1
@@ -491,7 +491,7 @@ as the input directory:
 └──   README
 ```
 
-Nothing here seems magical, but the log output of `wu-sync archive`
+Nothing here seems magical, but the log output of `wu-sync prepare`
 reveals a lot that's going on to ensure that only complete files are
 processed.
 
@@ -501,23 +501,23 @@ processed.
 
 #### Splitting input files
 
-The `--split` option will make `wu-sync archive` split large files in
+The `--split` option will make `wu-sync prepare` split large files in
 the `--input` directory into many manageable, smaller files in the
 `--output` directory.
 
 Assume that Alice has been busy and that the file
-`/data/archive/alice/project_1/file_1` is big.  After running `wu-sync
-archive` twice:
+`/data/clean/alice/project_1/file_1` is big.  After running `wu-sync
+prepare` twice:
 
 ```
-$ wu-sync archive --input=/data/ftp --output=/data/archive --split
-$ wu-sync archive --input=/data/ftp --output=/data/archive --split
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --split
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --split
 ```
 
-the `--output` directory `/data/archive` will look like this:
+the `--output` directory `/data/clean` will look like this:
 
 ```
-/data/archive
+/data/clean
 ├──   alice
 │   └──   project_1
 │       ├──   file_1.part-0000
@@ -548,19 +548,19 @@ option.
 #### Ordering output files
 
 Some tools require their input to be ordered and for these tools
-`wu-sync archive` provides an `--ordered` option which will reorganize
+`wu-sync prepare` provides an `--ordered` option which will reorganize
 files in the `--output` directory so that they are totally ordered:
 
 ```
-$ wu-sync archive --input=/data/ftp --output=/data/archive --ordered
-$ wu-sync archive --input=/data/ftp --output=/data/archive --ordered
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --ordered
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --ordered
 ```
 
 This would result in the following structure for the `--output`
 directory:
 
 ```
-/data/archive
+/data/clean
 ├──   alice
 │   └──   2013
 │       └──   09
@@ -604,14 +604,14 @@ The ordering is built up from:
 The `--ordered` option can be combined with the `--split` option:
 
 ```
-$ wu-sync archive --input=/data/ftp --output=/data/archive --ordered
-$ wu-sync archive --input=/data/ftp --output=/data/archive --ordered
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --ordered
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --ordered
 ```
 
 to get
 
 ```
-/data/archive
+/data/clean
 ├──   alice
 │   └──   2013
 │       └──   09
@@ -646,14 +646,14 @@ have the same relative path as their corresponding data files, but
 with an extra suffix of `.meta`.  Here's an example:
 
 ```
-$ wu-sync archive --input=/data/ftp --output=/data/archive --metadata
-$ wu-sync archive --input=/data/ftp --output=/data/archive --metadata
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --metadata
+$ wu-sync prepare --input=/data/ftp --output=/data/clean --metadata
 ```
 
 which produces
 
 ```
-/data/archive
+/data/clean
 ├──   alice
 │   └──   2013
 │       └──   09
@@ -704,10 +704,10 @@ they transfer its corresponding data file.  Since metadata files are
 also small, this means that downstream tools can use the presence or
 absence of a metadata file to know for sure whether a data file has
 already been transferred completely -- they won't have to do the dance
-that `wu-sync archive` is doing.
+that `wu-sync prepare` is doing.
 
 The content of a metadata file is very simple.  Here's
-`/data/archive/alice_meta/2013/09/20/20130920-072539-1-alice-project_1-file_1.meta`:
+`/data/clean/alice_meta/2013/09/20/20130920-072539-1-alice-project_1-file_1.meta`:
 
 ```
 {
@@ -732,7 +732,7 @@ The `s3` sync will sync data from a local `--input` directory to an
 Here's an example.
 
 ```
-$ wu-sync s3 --input=/data/archive --bucket=s3://example.com/archive
+$ wu-sync s3 --input=/data/clean --bucket=s3://example.com/archive
 ```
 
 This example assumes that the underlying `s3cmd` has been installed
@@ -742,7 +742,7 @@ with appropriate credentials to write to the `s3://example.com` bucket
 file:
 
 ```
-$ wu-sync s3 --input=/data/archive --bucket=s3://example.com/archive --s3cmd_config=config/s3cfg
+$ wu-sync s3 --input=/data/clean --bucket=s3://example.com/archive --s3cmd_config=config/s3cfg
 ```
 
 ### Working with multiple data sources
@@ -770,7 +770,7 @@ listeners:
       username: narmstrong
       password: first!
       path:     /data/latest
-	archive:
+	prepare:
 	  ordered:  true
 	  metadata: true
     s3:
@@ -781,7 +781,7 @@ listeners:
       username: bobross
       password: xxx
       path:     /data/latest
-	archive:
+	prepare:
 	  split: true
 	  lines: 1_000_000
     s3:
@@ -791,7 +791,7 @@ listeners:
 
 The top-level keys in the `listeners` Hash (`nasa`, `usaf`, &c.) are
 each the name of a data source.  The next-level keys (`ftp`,
-`archive`, `s3`) each name a sync type and give the options for that
+`prepare`, `s3`) each name a sync type and give the options for that
 type.  These options are exactly the same as the usual options for
 that sync-type.  Options not supplied via the configuration file
 (typically "system" parameters like `--input` and `--output`
@@ -803,8 +803,8 @@ commands will perform a sync from FTP to S3 of all data sources:
 
 ```
 $ wu-sync-all ftp --output=/data/incoming
-$ wu-sync-all archive --input=/data/incoming --output=/data/received
-$ wu-sync-all archive --input=/data/incoming --output=/data/received
+$ wu-sync-all prepare --input=/data/incoming --output=/data/received
+$ wu-sync-all prepare --input=/data/incoming --output=/data/received
 $ wu-sync-all s3 --input=/data/received
 ```
 

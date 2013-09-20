@@ -3,7 +3,7 @@ module Wukong
     
     autoload :FTPSyncer,     'wukong-load/syncers/ftp_syncer'
     autoload :S3Syncer,      'wukong-load/syncers/s3_syncer'
-    autoload :ArchiveSyncer, 'wukong-load/syncers/archive_syncer'
+    autoload :PrepareSyncer, 'wukong-load/syncers/prepare_syncer'
     
     # Implements `wu-sync`.
     class SyncRunner < Wukong::Runner
@@ -19,7 +19,7 @@ other pluggable filesystem-like data stores including:
 
   ftp -- syncs to a remote FTP/FTPS/SFTP directory
   s3 -- syncs to AWS S3 bucket and path
-  archive -- syncs non-growing files locally with hardlinks
+  prepare -- prepares input from one directory for consumption in another
 
 For more help on a specific sycner, run:
 
@@ -69,7 +69,7 @@ EOF
         case syncer_name.to_s.downcase
         when 's3'         then S3Syncer
         when 'ftp'        then FTPSyncer
-        when 'archive'    then ArchiveSyncer
+        when 'prepare'    then PrepareSyncer
         end
       end
 
