@@ -498,7 +498,7 @@ processed.
 **Note:** The files created in the `--output` directory are
   [hardlinks](http://en.wikipedia.org/wiki/Hard_link) pointing at the
   original files in the `--input` directory.
-
+  
 #### Splitting input files
 
 The `--split` option will make `wu-sync prepare` split large files in
@@ -722,6 +722,19 @@ Both `path` and `meta_path` are relative to the `--output` directory.
 
 The `--metadata` option can also be combined with the `--split`
 option.
+
+#### Multiple Output Directories
+
+Using multiple `--output` directories mounted on different devices can
+greatly speed up operation as large files are read & written.  When
+using multiple `--output` directories, each consecutively processed
+file in the `--input` directory will be assigned one of the output
+directories in a round-robin fashion:
+
+```
+$ wu-sync prepare --input=/data/ftp --output=/data/clean_1,/data/clean_2
+$ wu-sync prepare --input=/data/ftp --output=/data/clean_1,/data/clean_2
+```
 
 ### To S3
 

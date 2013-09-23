@@ -2,19 +2,24 @@ module Wukong
   module Load
 
     # Syncs a "live" input directory, with possibly growing files,
-    # with an output directory.
+    # with an output directory or directories.  In the case of
+    # multiple output directories, useful to get higher throughput,
+    # consecutive files will be placed round-robin at the same
+    # relative paths into each output directory: *merging* the output
+    # directories downstream should yield the same result as having
+    # just used a single output directory.
     #
-    # Files in the output directory will only appear when files in the
-    # input directory stop growing.
+    # Files in the output directories will only appear when files in
+    # the input directory stop growing.
     #
-    # By default, files in the output directory will be hardlinks at
+    # By default, files in the output directories will be hardlinks at
     # the same relative paths as their corresponding (complete) files
     # in the input directory.
     #
     # A second mode of operation (activated using the `split` option
     # in #initialize) will split all (complete) files in the input
     # directory into equal-sized, smaller files in the output
-    # directory with the same relative path as the original file in
+    # directories with the same relative path as the original file in
     # the input directory but with numerically increasaing suffixes.
     # Size and splitting behavior are both configurable.
     #
@@ -22,12 +27,15 @@ module Wukong
     # available:
     #
     # 1. Instead of placing files (or splits of a file) at the same
-    # relative path in the output directory as in the input directory,
-    # a complete ordering on the files, based on the time of syncing
-    # and the file's original relative path, can be used instead.
-    # This is a good choice when downstream consumers (e.g. - Storm)
-    # need ordered input.  This option is activated using the
-    # `ordered` option in #initialize.
+    # relative path in the output directories as in the input
+    # directory, a complete ordering on the files, based on the time
+    # of syncing and the file's original relative path, can be used
+    # instead.  This is a good choice when downstream consumers
+    # (e.g. - Storm) need ordered input.  This option is activated
+    # using the `ordered` option in #initialize.  When using multiple
+    # output directories, ordering is maintained **across**
+    # directories so that the downstream merge of multiple, ordered
+    # output directories is itself orderered.
     #
     # 2. In addition to creating the output file (or splits) a JSON
     # metadata file can also be created for each input file.  This
@@ -43,7 +51,10 @@ module Wukong
     # in a partial state.  The combination of these factors means that
     # a downstream consumer can use the presence or absence of a
     # metadata file as an indicator of whether the **actual** output
-    # file (or splits) has finished arriving.
+    # file (or splits) has finished arriving.  When creating multiple
+    # output directories, metadata files are created within each
+    # output directory separately (but still in a way consistent with
+    # them being merged downstream).
     class PrepareSyncer < Syncer
       
       include Logging
@@ -58,11 +69,11 @@ module Wukong
       # @return [PrepareSyncer]
       def self.from_source settings, source, name
         raise Error.new("An --input directory is required") unless settings[:input]
-        raise Error.new("An --output directory is required") unless settings[:output]
+        raise Error.new("At least one --output directory is required") if (settings[:output].nil? || settings[:output].empty?)
         new(settings.dup.merge({
           name:   name.to_s,
           input:  File.join(settings[:input], name.to_s),
-          output: File.join(settings[:output], name.to_s),
+          output: settings[:output].map { |dir| File.join(dir, name.to_s) },
         }).merge(source[:prepare] || {}))
       end
       
@@ -71,7 +82,7 @@ module Wukong
       # @param [Configliere::Param] settings
       def self.configure settings
         settings.define :input,   description: "Input directory of (possibly growing) files"
-        settings.define :output,  description: "Output directory of processed, complete files"
+        settings.define :output,  description: "Output directory of processed, complete files", default: [], type: Array
         
         settings.define :ordered,  description: "Create a total ordering within the output directory", default: false, type: :boolean
         settings.define :metadata, description: "Create a metadata file for each file in the output directory", default: false, type: :boolean
@@ -83,7 +94,7 @@ module Wukong
         
         settings.description = <<-EOF
 Syncs an --input directory, with possibly growing flies, to an
---output directory.
+--output directory or directories.
 
 Files will only appear in the --output directory when they stop
 growing in the --input directory.  At least two invocations of wu-sync
@@ -109,16 +120,21 @@ which will split after a certain number of bytes instead of lines.
   $ wu-sync prepare --input=/var/ftp/inbound --output=/data/ftp/outbound --split --bytes=1_048_576
 
 The --ordered option can be used to create a complete ordering of
-files in the --output directory, useful for when downstream consumers
-(e.g. - Storm) require ordered input.
+files in the --output directories, useful for when downstream
+consumers (e.g. - Storm) require ordered input.
 
 The --metadata option will create a JSON metadata file in the output
-directory in addition to each output file.
+directories in addition to each output file.
 
 In situations where the input file and output file are in a one-to-one
 correspondence (without the --split option), files in the --output
-directory will be hardlinks pointing at their equivalent files in the
---input directory.
+directories will be hardlinks pointing at their equivalent files in
+the --input directory.
+
+Multiple --output directories (usually on different hard drives) can
+dramatically speed up operations:
+
+  $ wu-sync prepare --input=/var/ftp/inbound --output=/data/ftp/outbound_1,/data/ftp/outbound_2,/data/ftp/outbound_3 --split --lines=100_000
 EOF
       end
 
@@ -132,9 +148,10 @@ EOF
         raise Error.new("Input directory <#{settings[:input]}> does not exist") unless File.exist?(settings[:input])
         raise Error.new("Input directory <#{settings[:input]}> is not a directory") unless File.directory?(settings[:input])
         
-        raise Error.new("A local --output directory is required") if settings[:output].nil? || settings[:output].empty?
-        raise Error.new("Output directory <#{settings[:output]}> exists but is not a directory") if File.exist?(settings[:output]) && !File.directory?(settings[:output])
-        
+        raise Error.new("At least one --output directory is required") if (settings[:output].nil? || settings[:output].empty?)
+        settings[:output].each do |dir|
+          raise Error.new("Output directory <#{dir}> exists but is not a directory") if File.exist?(dir) && !File.directory?(dir)
+        end
         true
       end
 
@@ -166,11 +183,13 @@ EOF
         Pathname.new(File.absolute_path(settings[:input]))
       end
 
-      # The absolute path to the output directory.
+      # The absolute path to the output directories.
       #
-      # @return [Pathname]
-      def absolute_output_directory
-        Pathname.new(File.absolute_path(settings[:output]))
+      # @return [Array<Pathname>]
+      def absolute_output_directories
+        settings[:output].map do |dir|
+          Pathname.new(File.absolute_path(dir))
+        end
       end
 
       # Setup this PrepareSyncer by loading any file size state that's
@@ -265,7 +284,7 @@ EOF
       # @return [Handler]
       def create_handler
         settings[:ordered] = true if settings[:metadata]
-        handler_settings   = settings.dup.merge(input: absolute_input_directory, output: absolute_output_directory)
+        handler_settings   = settings.dup.merge(input: absolute_input_directory, output: absolute_output_directories)
         self.handler       = (settings[:split] ? SplittingHandler : Handler).new(self, handler_settings)
       end
 

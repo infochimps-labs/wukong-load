@@ -105,7 +105,7 @@ module Wukong
         #
         # @return [Integer]
         def suffix_length
-          4
+          6
         end
 
         # Suffix of the first split.

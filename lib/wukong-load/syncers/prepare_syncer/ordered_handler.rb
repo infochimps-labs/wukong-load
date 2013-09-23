@@ -7,24 +7,6 @@ module Wukong
       # directory.
       module OrderedHandler
         
-        # Counter for keeping track of the number of files processed.
-        #
-        # Defaults to 0.
-        #
-        # @return [Integer]
-        def counter
-          @counter ||= 0
-        end
-        attr_writer :counter
-        
-        # Increments the #counter.
-        #
-        # @param [Pathname] original
-        def after_process original
-          super(original)
-          self.counter += 1
-        end
-        
         # Return the output path for the given `original` file.
         #
         # @param [Pathname] original
@@ -32,7 +14,7 @@ module Wukong
         # @return [Pathname]
         def path_for original, time=nil
           time ||= Time.now.utc
-          settings[:output].join(daily_directory_for(time, original)).join(slug_for(time, original))
+          current_output_directory.join(daily_directory_for(time, original)).join(slug_for(time, original))
         end
 
         # Return the daily directory for the given `time`.

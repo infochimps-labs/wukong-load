@@ -26,8 +26,8 @@ module Wukong
         # @param [Pathname] copy
         # @return [Pathname]
         def metadata_path_for(copy)
-          top_level, rest = relative_path_of(copy, settings[:output]).to_s.split('/', 2)
-          settings[:output].join(top_level + '_meta', rest + ".meta")
+          top_level, rest = relative_path_of(copy, current_output_directory).to_s.split('/', 2)
+          current_output_directory.join(top_level + '_meta', rest + ".meta")
         end
 
         # Returns the metadata for the ``copy` file.
@@ -36,8 +36,8 @@ module Wukong
         # @param [Hash]
         def metadata_for(copy)
           {
-            path:      relative_path_of(copy, settings[:output]),
-            meta_path: relative_path_of(metadata_path_for(copy), settings[:output]),
+            path:      relative_path_of(copy, current_output_directory),
+            meta_path: relative_path_of(metadata_path_for(copy), current_output_directory),
             size:      File.size(copy),
             md5:       Digest::MD5.file(copy).hexdigest, # streaming
           }
