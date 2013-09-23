@@ -82,7 +82,7 @@ module Wukong
       # @param [Configliere::Param] settings
       def self.configure settings
         settings.define :input,   description: "Input directory of (possibly growing) files"
-        settings.define :output,  description: "Output directory of processed, complete files", default: [], type: Array
+        settings.define :output,  description: "Comma-separated list of output directories", default: [], type: Array
         
         settings.define :ordered,  description: "Create a total ordering within the output directory", default: false, type: :boolean
         settings.define :metadata, description: "Create a metadata file for each file in the output directory", default: false, type: :boolean
@@ -93,7 +93,7 @@ module Wukong
         settings.define :split_program, description: "Path to the `split` program", default: 'split'
         
         settings.description = <<-EOF
-Syncs an --input directory, with possibly growing flies, to an
+Syncs an --input directory, with possibly growing files, to an
 --output directory or directories.
 
 Files will only appear in the --output directory when they stop

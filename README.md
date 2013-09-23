@@ -757,6 +757,15 @@ file:
 ```
 $ wu-sync s3 --input=/data/clean --bucket=s3://example.com/archive --s3cmd_config=config/s3cfg
 ```
+
+The `wu-sync s3` command also works with multiple `--input`
+directories.  This is to work nicely with the `wu-sync prepare`
+command which has multiple `--output` directories:
+
+```
+$ wu-sync s3 --input=/data/clean_1,/data/clean_2 --bucket=s3://example.com/archive --s3cmd_config=config/s3cfg
+```
+
 <a name="wu-sync-all">
 ### Working with multiple data sources
 
