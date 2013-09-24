@@ -34,6 +34,7 @@ module Wukong
           self.syncer   = syncer
           self.settings = settings
           self.counter  = 0
+          self.counter  = rand(settings[:output].size) if settings[:output] && settings[:output].size > 1
           extend (settings[:dry_run] ? FileUtils::NoWrite : FileUtils)
           extend OrderedHandler if settings[:ordered]
         end
