@@ -8,6 +8,9 @@ module Wukong
     # do the heavy-lifting.
     class FTPSyncer < Syncer
 
+      # A list of files that was transferred, each in full or in part.
+      attr_accessor :files
+
       include Logging
 
       # A mapping between protocal names and the standard ports
@@ -82,6 +85,11 @@ EOF
         raise Error.new("Output directory <#{settings[:output]}> exists but is not a directory") if File.exist?(settings[:output]) && !File.directory?(settings[:output])
         
         true
+      end
+
+      # :nodoc:
+      def setup
+        self.files = []
       end
 
       # Logs what's about to happen.
@@ -176,7 +184,10 @@ EOF
 
       # :nodoc:
       def handle_output line
-        log.debug(line.chomp)
+        content = line.chomp
+        log.debug(content)
+        (self.files << $1 if content =~ /^Transferring file `(.+)'/)
+      rescue
       end
 
     end

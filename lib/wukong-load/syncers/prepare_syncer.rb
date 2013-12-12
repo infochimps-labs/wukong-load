@@ -159,21 +159,25 @@ EOF
       # static files.
       attr_accessor :handler
 
-      # Tracks counts of files that were processed.
+      # A list of files that was processed during this invocation.
       attr_accessor :files
 
+      # Tracks counts of files examined, new, ignored, in error, and
+      # processed.
+      attr_accessor :counts
+      
       # Did all input files process?
       #
       # @return [true, false]
       def success?
-        self.files[:examined] == 0 || self.files[:error] == 0
+        self.counts[:examined] == 0 || self.counts[:error] == 0
       end
       
       # Did any of the input files fail to process?
       #
       # @return [true, false]
       def failed?
-        self.files[:error] > 0
+        self.counts[:error] > 0
       end
 
       # The absolute path to the input directory.
@@ -198,7 +202,8 @@ EOF
         super()
         load_file_state
         create_handler
-        self.files = { examined: 0, new: 0, processed: 0, ignored: 0, error: 0 }
+        self.files  = []
+        self.counts = { examined: 0, new: 0, processed: 0, ignored: 0, error: 0 }
       end
 
       # Logs a message.
@@ -210,7 +215,7 @@ EOF
       # Logs a message.
       def after_sync
         super()
-        log.debug("#{settings[:input]}: #{self.files[:examined]} files, #{self.files[:new]} new, #{self.files[:processed]} processed, #{self.files[:ignored]} ignored, #{self.files[:error]} error")
+        log.debug("#{settings[:input]}: #{self.counts[:examined]} files, #{self.counts[:new]} new, #{self.counts[:processed]} processed, #{self.counts[:ignored]} ignored, #{self.counts[:error]} error")
       end
 
       # Perform the sync.
@@ -223,9 +228,9 @@ EOF
         started_at = Time.now
         absolute_input_directory.find do |path|
           next if path.directory?
-          self.files[:examined] += 1
+          self.counts[:examined] += 1
           if already_processed?(path)
-            self.files[:ignored] += 1
+            self.counts[:ignored] += 1
             next
           end
           same_size?(path) ? process!(path) : remember_size!(path)
@@ -261,10 +266,11 @@ EOF
       # @see Handler#process
       def process! path
         if handler.process(path)
-          self.files[:processed] += 1
+          self.counts[:processed] += 1
+          self.files << handler.fragment_for(path)
           file_state[path.to_s] = true
         else
-          self.files[:error] += 1
+          self.counts[:error] += 1
         end
       end
 
@@ -273,7 +279,7 @@ EOF
       #
       # @param [Pathname] path
       def remember_size!(path)
-        self.files[:new] += 1
+        self.counts[:new] += 1
         file_state[path.to_s] = path.size
       end
 

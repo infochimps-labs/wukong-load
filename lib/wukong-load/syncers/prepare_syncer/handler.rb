@@ -127,6 +127,15 @@ module Wukong
           file.relative_path_from(dir)
         end
 
+        # Return the path relative to the `input` directory of the
+        # `original` path.
+        #
+        # @param [Pathname] original
+        # @return [Pathname]
+        def fragment_for original
+          relative_path_of(original, settings[:input])
+        end
+
         # Returns the top-level directory of the `file`, relative to
         # `dir`.
         #
