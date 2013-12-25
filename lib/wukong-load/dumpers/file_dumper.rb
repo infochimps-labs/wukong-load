@@ -112,7 +112,7 @@ EOF
       end
 
       def clean_command
-        "tr '\r' '\n'"
+        "tr -d '\r' | tr '\r' '\n'"
       end
       
       def awk_command
